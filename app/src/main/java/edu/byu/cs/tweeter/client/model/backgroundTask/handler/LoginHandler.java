@@ -31,7 +31,7 @@ public class LoginHandler extends Handler {
             // Cache user session information
             Cache.getInstance().setCurrUser(loggedInUser);
             Cache.getInstance().setCurrUserAuthToken(authToken);
-            observer.handleSuccess(loggedInUser,authToken);
+            observer.handleSuccess(loggedInUser,authToken,"Hello " + Cache.getInstance().getCurrUser().getName());
         } else if (msg.getData().containsKey(LoginTask.MESSAGE_KEY)) {
             String message = msg.getData().getString(LoginTask.MESSAGE_KEY);
             observer.handleFailure("Failed to login: " + message);

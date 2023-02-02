@@ -12,12 +12,12 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public class UserService {
     public interface LoginObserver {
-        void handleSuccess(User user, AuthToken authToken);
+        void handleSuccess(User user, AuthToken authToken,String message);
         void handleFailure(String message);
         void handleException(Exception exception);
     }
     public interface RegisterObserver {
-        void handleSuccess(User user, AuthToken authToken);
+        void handleSuccess(User user, AuthToken authToken,String message);
         void handleFailure(String message);
         void handleException(Exception exception);
     }
