@@ -5,7 +5,7 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class LoginPresenter implements UserService.LoginObserver {
-    View view;
+    public View view;
 
     public LoginPresenter(View view) {
         this.view = view;

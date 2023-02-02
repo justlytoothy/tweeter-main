@@ -78,9 +78,7 @@ public class LoginFragment extends Fragment implements LoginPresenter.View {
     public void loginSuccessful(User user, AuthToken authToken) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
-
         loginToast.cancel();
-
         Toast.makeText(getContext(), "Hello " + Cache.getInstance().getCurrUser().getName(), Toast.LENGTH_LONG).show();
         startActivity(intent);
     }
