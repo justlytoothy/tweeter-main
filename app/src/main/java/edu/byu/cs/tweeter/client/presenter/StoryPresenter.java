@@ -9,50 +9,21 @@ import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class StoryPresenter {
-
-
-
-    public interface View {
-        void displayMessage(String message);
-        void userReceived(User user);
-
-        void setLoadingFooter(boolean isLoading);
-
-        void addMoreItems(List<Status> statuses);
-    }
-
     private View view;
     private UserService userService;
     private StatusService statusService;
     private Status lastStatus;
-
-    public Status getLastStatus() {
-        return lastStatus;
-    }
-
-    public void setLastStatus(Status lastStatus) {
-        this.lastStatus = lastStatus;
-    }
-
-    public boolean isHasMorePages() {
-        return hasMorePages;
-    }
-
-    public void setHasMorePages(boolean hasMorePages) {
-        this.hasMorePages = hasMorePages;
-    }
-
-    public boolean isLoading() {
-        return isLoading;
-    }
-
-    public void setLoading(boolean loading) {
-        isLoading = loading;
-    }
-
     private boolean hasMorePages;
     private boolean isLoading = false;
     private static final int PAGE_SIZE = 10;
+
+    public interface View {
+        void displayMessage(String message);
+        void userReceived(User user);
+        void setLoadingFooter(boolean isLoading);
+        void addMoreItems(List<Status> statuses);
+    }
+
     public void loadMoreItems(User user) {
         if (!isLoading) {
             isLoading = true;
@@ -103,5 +74,25 @@ public class StoryPresenter {
             setLastStatus((statuses.size() > 0) ? statuses.get(statuses.size() - 1) : null);
             view.addMoreItems(statuses);
         }
+    }
+
+    public void setLastStatus(Status lastStatus) {
+        this.lastStatus = lastStatus;
+    }
+
+    public boolean isHasMorePages() {
+        return hasMorePages;
+    }
+
+    public void setHasMorePages(boolean hasMorePages) {
+        this.hasMorePages = hasMorePages;
+    }
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
     }
 }

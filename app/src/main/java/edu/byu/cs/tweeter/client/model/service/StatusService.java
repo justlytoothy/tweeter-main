@@ -3,10 +3,7 @@ package edu.byu.cs.tweeter.client.model.service;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -15,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.backgroundTask.GetFeedTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.GetStoryTask;
@@ -28,28 +24,6 @@ import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class StatusService {
-    public void loadMoreItems(User user, int pageSize, Status lastStatus, StoryPresenter.GetStoryObserver getStoryObserver) {
-        GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
-                user, pageSize, lastStatus, new GetStoryHandler(getStoryObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(getStoryTask);
-    }
-    public void loadMoreItemsFeed(User user, int pageSize, Status lastStatus, FeedPresenter.GetFeedObserver getFeedObserver) {
-        GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
-                user, pageSize, lastStatus, new GetFeedHandler(getFeedObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(getStoryTask);
-    }
-
-
-    public void postStatus(AuthToken currUserAuthToken, String post, User currUser, MainActivityPresenter.PostStatusObserver postStatusObserver) throws ParseException {
-        Status newStatus = new Status(post,currUser,getFormattedDateTime(),parseURLs(post),parseMentions(post));
-        PostStatusTask statusTask = new PostStatusTask(currUserAuthToken,
-                newStatus, new PostStatusHandler(postStatusObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(statusTask);
-    }
-
     public interface GetStoryObserver {
         void displayError(String message);
         void displayException(Exception ex);
@@ -65,6 +39,30 @@ public class StatusService {
         void displayException(Exception ex);
         void onSuccess();
     }
+
+    public void loadMoreItems(User user, int pageSize, Status lastStatus, StoryPresenter.GetStoryObserver getStoryObserver) {
+        GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
+                user, pageSize, lastStatus, new GetStoryHandler(getStoryObserver));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(getStoryTask);
+    }
+
+    public void loadMoreItemsFeed(User user, int pageSize, Status lastStatus, FeedPresenter.GetFeedObserver getFeedObserver) {
+        GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
+                user, pageSize, lastStatus, new GetFeedHandler(getFeedObserver));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(getStoryTask);
+    }
+
+    public void postStatus(AuthToken currUserAuthToken, String post, User currUser, MainActivityPresenter.PostStatusObserver postStatusObserver) throws ParseException {
+        Status newStatus = new Status(post,currUser,getFormattedDateTime(),parseURLs(post),parseMentions(post));
+        PostStatusTask statusTask = new PostStatusTask(currUserAuthToken,
+                newStatus, new PostStatusHandler(postStatusObserver));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(statusTask);
+    }
+
+
     /**
      * Message handler (i.e., observer) for GetStoryTask.
      */
@@ -91,6 +89,7 @@ public class StatusService {
             }
         }
     }
+
     public class GetFeedHandler extends Handler {
         private StatusService.GetFeedObserver observer;
         public GetFeedHandler(StatusService.GetFeedObserver observe) {
@@ -125,20 +124,17 @@ public class StatusService {
         public void handleMessage(@NonNull Message msg) {
             boolean success = msg.getData().getBoolean(PostStatusTask.SUCCESS_KEY);
             if (success) {
-//                postingToast.cancel();
-//                Toast.makeText(MainActivity.this, "Successfully Posted!", Toast.LENGTH_LONG).show();
                 observer.onSuccess();
             } else if (msg.getData().containsKey(PostStatusTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(PostStatusTask.MESSAGE_KEY);
                 observer.displayError("Failed to post status: " + message);
-//                Toast.makeText(MainActivity.this, "Failed to post status: " + message, Toast.LENGTH_LONG).show();
             } else if (msg.getData().containsKey(PostStatusTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(PostStatusTask.EXCEPTION_KEY);
                 observer.displayException(ex);
-//                Toast.makeText(MainActivity.this, "Failed to post status because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
     }
+
     public List<String> parseURLs(String post) {
         List<String> containedUrls = new ArrayList<>();
         for (String word : post.split("\\s")) {

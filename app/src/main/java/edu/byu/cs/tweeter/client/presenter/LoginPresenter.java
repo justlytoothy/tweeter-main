@@ -9,6 +9,12 @@ public class LoginPresenter implements UserService.LoginObserver {
     public View view;
     private UserService userService;
 
+    public interface View {
+        void displayInfoMessage(String message);
+        void displayErrorMessage(String message);
+        void loginSuccessful(User user, AuthToken authToken,String message);
+    }
+
     public LoginPresenter(View view) {
         this.view = view;
         userService = new UserService();
@@ -26,14 +32,10 @@ public class LoginPresenter implements UserService.LoginObserver {
 
     @Override
     public void handleException(Exception exception) {
-        view.displayInfoMessage(exception.getMessage()); //TODO
+        view.displayInfoMessage(exception.getMessage());
     }
 
-    public interface View {
-        void displayInfoMessage(String message);
-        void displayErrorMessage(String message);
-        void loginSuccessful(User user, AuthToken authToken,String message);
-    }
+
     public void initiateLogin(String username, String password) {
         String validationMessage = validateLogin(username, password);
         if (validationMessage == null) {

@@ -13,6 +13,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public class RegisterPresenter implements UserService.RegisterObserver {
     public View view;
+    private UserService userService;
     public interface View {
         public void displayInfoMessage(String message);
         public void displayErrorMessage(String message);
@@ -20,6 +21,7 @@ public class RegisterPresenter implements UserService.RegisterObserver {
     }
     public RegisterPresenter(RegisterPresenter.View view) {
         this.view = view;
+        userService = new UserService();
     }
 
     @Override
@@ -34,7 +36,7 @@ public class RegisterPresenter implements UserService.RegisterObserver {
 
     @Override
     public void handleException(Exception exception) {
-        view.displayInfoMessage("Failed to register because of exception: " + exception.getMessage());
+        view.displayErrorMessage("Failed to register because of exception: " + exception.getMessage());
     }
 
     public void initiateRegister( String fName, String lName, String username, String password, Drawable image) {
@@ -46,11 +48,8 @@ public class RegisterPresenter implements UserService.RegisterObserver {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             imageFinal.compress(Bitmap.CompressFormat.JPEG, 100, bos);
             byte[] imageBytes = bos.toByteArray();
-
             // Intentionally, Use the java Base64 encoder so it is compatible with M4.
             String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
-
-            UserService userService = new UserService();
             userService.register(fName,lName,username,password,imageBytesBase64,this);
         }
         else {
@@ -60,26 +59,26 @@ public class RegisterPresenter implements UserService.RegisterObserver {
     }
     public String validateRegistration(String fName, String lName, String username, String password, Drawable image) {
         if (fName.length() == 0) {
-            throw new IllegalArgumentException("First Name cannot be empty.");
+            return "First Name cannot be empty.";
         }
         if (lName.length() == 0) {
-            throw new IllegalArgumentException("Last Name cannot be empty.");
+            return "Last Name cannot be empty.";
         }
         if (username.length() == 0) {
-            throw new IllegalArgumentException("Alias cannot be empty.");
+            return "Alias cannot be empty.";
         }
         if (username.charAt(0) != '@') {
-            throw new IllegalArgumentException("Alias must begin with @.");
+            return "Alias must begin with @.";
         }
         if (username.length() < 2) {
-            throw new IllegalArgumentException("Alias must contain 1 or more characters after the @.");
+            return "Alias must contain 1 or more characters after the @.";
         }
         if (password.length() == 0) {
-            throw new IllegalArgumentException("Password cannot be empty.");
+            return "Password cannot be empty.";
         }
 
         if (image == null) {
-            throw new IllegalArgumentException("Profile image must be uploaded.");
+            return "Profile image must be uploaded.";
         }
         return null;
     }

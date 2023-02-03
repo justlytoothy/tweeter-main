@@ -21,6 +21,17 @@ public class MainActivityPresenter {
     private UserService userService;
     private FollowService followService;
     private StatusService statusService;
+
+    public interface View {
+        void displayMessage(String message);
+        void logoutSuccess();
+        void followingCountReceived(int count);
+        void followerCountReceived(int count);
+        void isFollowerReceived(boolean isFollower);
+        void updateFollowingOrNot(boolean followingStatus);
+        void statusPosted();
+    }
+
     public MainActivityPresenter(View view) {
         this.view = view;
         userService = new UserService();
@@ -47,21 +58,12 @@ public class MainActivityPresenter {
 
     }
 
-
     public void postStatus(AuthToken currUserAuthToken, String post, User currUser) throws ParseException {
         statusService.postStatus(currUserAuthToken,post,currUser, new PostStatusObserver());
     }
 
 
-    public interface View {
-        void displayMessage(String message);
-        void logoutSuccess();
-        void followingCountReceived(int count);
-        void followerCountReceived(int count);
-        void isFollowerReceived(boolean isFollower);
-        void updateFollowingOrNot(boolean followingStatus);
-        void statusPosted();
-    }
+
 
     public class LogoutObserver implements UserService.LogoutObserver {
         @Override
@@ -157,7 +159,6 @@ public class MainActivityPresenter {
         @Override
         public void onSuccess() {
             view.updateFollowingOrNot(false);
-
         }
     }
     public class PostStatusObserver implements StatusService.PostStatusObserver {

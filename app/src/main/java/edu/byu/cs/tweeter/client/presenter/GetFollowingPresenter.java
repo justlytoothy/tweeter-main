@@ -14,49 +14,27 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class GetFollowingPresenter {
+
+    private View view;
+    private static final int PAGE_SIZE = 10;
+    private boolean isLoading = false;
+    private FollowService followService;
+    private UserService userService;
+    private User lastFollowee;
+
     public interface View {
         void displayMessage(String message);
         void setLoadingFooter(boolean set);
         void addMoreItems(List<User> followees);
         void userReceived(User user);
     }
-    private View view;
-    private static final int PAGE_SIZE = 10;
-
-    public void setLastFollowee(User lastFollowee) {
-        this.lastFollowee = lastFollowee;
-    }
-
-    private User lastFollowee;
-
-    public boolean hasMorePages() {
-        return hasMorePages;
-    }
-
-    public void setHasMorePages(boolean hasMorePages) {
-        this.hasMorePages = hasMorePages;
-    }
-
-    private boolean hasMorePages;
-
-    public boolean isLoading() {
-        return isLoading;
-    }
-
-    public void setLoading(boolean loading) {
-        isLoading = loading;
-    }
-
-    private boolean isLoading = false;
-    private FollowService followService;
-    private UserService userService;
-
 
     public GetFollowingPresenter(View view) {
         this.view = view;
         followService = new FollowService();
         userService = new UserService();
     }
+
     public void loadMoreItems(User user) {
         if (!isLoading) {
             isLoading = true;
@@ -64,6 +42,7 @@ public class GetFollowingPresenter {
             followService.loadMoreItems(user,PAGE_SIZE,lastFollowee, new GetFollowingObserver());
         }
     }
+
     public void getUser(AuthToken authToken, String username) {
         userService.getUser(authToken,username, new GetUserObserver());
     }
@@ -105,5 +84,27 @@ public class GetFollowingPresenter {
             view.displayMessage(message);
         }
 
+    }
+
+    public void setLastFollowee(User lastFollowee) {
+        this.lastFollowee = lastFollowee;
+    }
+
+    public boolean hasMorePages() {
+        return hasMorePages;
+    }
+
+    public void setHasMorePages(boolean hasMorePages) {
+        this.hasMorePages = hasMorePages;
+    }
+
+    private boolean hasMorePages;
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
     }
 }

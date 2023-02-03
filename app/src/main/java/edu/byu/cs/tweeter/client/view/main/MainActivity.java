@@ -206,8 +206,6 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
 
     @Override
     public void followingCountReceived(int count) {
-        System.out.println("following received " + count);
-
         followeeCount.setText(getString(R.string.followeeCount, String.valueOf(count)));
     }
 

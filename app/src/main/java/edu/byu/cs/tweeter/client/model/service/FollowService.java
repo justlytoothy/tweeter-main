@@ -27,8 +27,6 @@ import edu.byu.cs.tweeter.model.domain.Follow;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class FollowService {
-
-
     public interface Observer {
         void displayError(String message);
         void displayException(Exception ex);
@@ -74,13 +72,9 @@ public class FollowService {
     }
     public void getFollowingCount(AuthToken authToken, User user, FollowingCountObserver followingCountObserver, FollowersCountObserver followersCountObserver) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
-
-        // Get count of most recently selected user's followers.
         GetFollowersCountTask followersCountTask = new GetFollowersCountTask(Cache.getInstance().getCurrUserAuthToken(),
                 user, new GetFollowersCountHandler(followersCountObserver));
         executor.execute(followersCountTask);
-
-        // Get count of most recently selected user's followees (who they are following)
         GetFollowingCountTask followingCountTask = new GetFollowingCountTask(authToken,
                 user, new GetFollowingCountHandler(followingCountObserver));
         executor.execute(followingCountTask);
@@ -133,7 +127,7 @@ public class FollowService {
         }
     }
     /**
-     * Message handler (i.e., observer) for GetFollowingTask.
+     * Message handler (i.e., observer) for GetFollowersTask.
      */
     private class GetFollowersHandler extends Handler {
         private Observer observer;
@@ -239,20 +233,15 @@ public class FollowService {
         public void handleMessage(@NonNull Message msg) {
             boolean success = msg.getData().getBoolean(FollowTask.SUCCESS_KEY);
             if (success) {
-//                updateSelectedUserFollowingAndFollowers();
-//                updateFollowButton(false);
                 observer.onSuccess();
             } else if (msg.getData().containsKey(FollowTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(FollowTask.MESSAGE_KEY);
                 observer.displayError("Failed to follow: " + message);
-//                Toast.makeText(MainActivity.this, "Failed to follow: " + message, Toast.LENGTH_LONG).show();
             } else if (msg.getData().containsKey(FollowTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(FollowTask.EXCEPTION_KEY);
                 observer.displayException(ex);
-//                Toast.makeText(MainActivity.this, "Failed to follow because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
             }
 
-//            followButton.setEnabled(true);
         }
     }
     public class UnfollowHandler extends Handler {
@@ -266,20 +255,14 @@ public class FollowService {
         public void handleMessage(@NonNull Message msg) {
             boolean success = msg.getData().getBoolean(UnfollowTask.SUCCESS_KEY);
             if (success) {
-//                updateSelectedUserFollowingAndFollowers();
-//                updateFollowButton(true);
                 observer.onSuccess();
             } else if (msg.getData().containsKey(UnfollowTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(UnfollowTask.MESSAGE_KEY);
                 observer.displayError("Failed to unfollow: " + message);
-//                Toast.makeText(MainActivity.this, "Failed to unfollow: " + message, Toast.LENGTH_LONG).show();
             } else if (msg.getData().containsKey(UnfollowTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(UnfollowTask.EXCEPTION_KEY);
                 observer.displayException(ex);
-//                Toast.makeText(MainActivity.this, "Failed to unfollow because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
             }
-
-//            followButton.setEnabled(true);
         }
     }
 }

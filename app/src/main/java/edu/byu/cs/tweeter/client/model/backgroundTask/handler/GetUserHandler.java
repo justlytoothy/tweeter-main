@@ -32,7 +32,6 @@ public class GetUserHandler extends Handler {
         } else if (msg.getData().containsKey(GetUserTask.EXCEPTION_KEY)) {
             Exception ex = (Exception) msg.getData().getSerializable(GetUserTask.EXCEPTION_KEY);
             observer.handleFailure("Failed to get user's profile because of exception: " + ex.getMessage());;
-//            Toast.makeText(getContext(), "Failed to get user's profile because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 }

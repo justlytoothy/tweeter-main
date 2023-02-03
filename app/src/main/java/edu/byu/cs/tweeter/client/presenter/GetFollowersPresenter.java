@@ -14,52 +14,25 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class GetFollowersPresenter {
+    private View view;
+    private static final int PAGE_SIZE = 10;
+    private User lastFollower;
+    private boolean isLoading = false;
+    private FollowService followService;
+    private UserService userService;
+
     public interface View {
         void displayMessage(String message);
         void setLoadingFooter(boolean set);
         void addMoreItems(List<User> followers);
         void userReceived(User user);
     }
-    private View view;
-    private static final int PAGE_SIZE = 10;
-
-    public void setLastFollower(User lastFollower) {
-        this.lastFollower = lastFollower;
-    }
-
-    private User lastFollower;
-
-    public boolean hasMorePages() {
-        return hasMorePages;
-    }
-
-    public void setHasMorePages(boolean hasMorePages) {
-        this.hasMorePages = hasMorePages;
-    }
-
-    private boolean hasMorePages;
-
-    public boolean isLoading() {
-        return isLoading;
-    }
-
-    public void setLoading(boolean loading) {
-        isLoading = loading;
-    }
-
-    private boolean isLoading = false;
-    private FollowService followService;
-    private UserService userService;
-
 
     public GetFollowersPresenter(View view) {
         this.view = view;
         followService = new FollowService();
         userService = new UserService();
     }
-
-
-
 
 
     public void loadMoreItems(User user) {
@@ -110,5 +83,27 @@ public class GetFollowersPresenter {
             view.displayMessage(message);
         }
 
+    }
+
+    public void setLastFollower(User lastFollower) {
+        this.lastFollower = lastFollower;
+    }
+
+    public boolean hasMorePages() {
+        return hasMorePages;
+    }
+
+    public void setHasMorePages(boolean hasMorePages) {
+        this.hasMorePages = hasMorePages;
+    }
+
+    private boolean hasMorePages;
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
     }
 }
