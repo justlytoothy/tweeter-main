@@ -7,9 +7,11 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public class LoginPresenter implements UserService.LoginObserver {
     public View view;
+    private UserService userService;
 
     public LoginPresenter(View view) {
         this.view = view;
+        userService = new UserService();
     }
 
     @Override
@@ -28,15 +30,14 @@ public class LoginPresenter implements UserService.LoginObserver {
     }
 
     public interface View {
-        public void displayInfoMessage(String message);
-        public void displayErrorMessage(String message);
-        public void loginSuccessful(User user, AuthToken authToken,String message);
+        void displayInfoMessage(String message);
+        void displayErrorMessage(String message);
+        void loginSuccessful(User user, AuthToken authToken,String message);
     }
     public void initiateLogin(String username, String password) {
         String validationMessage = validateLogin(username, password);
         if (validationMessage == null) {
             view.displayInfoMessage("Logging in ....");
-            UserService userService = new UserService();
             userService.login(username,password, this);
         }
         else {

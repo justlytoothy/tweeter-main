@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,11 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.model.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.presenter.GetFollowingPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
@@ -106,6 +102,13 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
         followingRecyclerViewAdapter.addItems(followees);
     }
 
+    @Override
+    public void userReceived(User user) {
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
+        startActivity(intent);
+    }
+
 
     @Override
     public void displayMessage(String message) {
@@ -136,10 +139,8 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    GetUserTask getUserTask = new GetUserTask(Cache.getInstance().getCurrUserAuthToken(),
-                            userAlias.getText().toString(), new GetUserHandler());
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(getUserTask);
+                    presenter.getUser(Cache.getInstance().getCurrUserAuthToken(),
+                            userAlias.getText().toString());
                     Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
                 }
             });
@@ -156,33 +157,6 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
             Picasso.get().load(user.getImageUrl()).into(userImage);
         }
 
-        /**
-         * Message handler (i.e., observer) for GetUserTask.
-         */
-        private class GetUserHandler extends Handler {
-
-            public GetUserHandler() {
-                super(Looper.getMainLooper());
-            }
-
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-                boolean success = msg.getData().getBoolean(GetUserTask.SUCCESS_KEY);
-                if (success) {
-                    User user = (User) msg.getData().getSerializable(GetUserTask.USER_KEY);
-
-                    Intent intent = new Intent(getContext(), MainActivity.class);
-                    intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
-                    startActivity(intent);
-                } else if (msg.getData().containsKey(GetUserTask.MESSAGE_KEY)) {
-                    String message = msg.getData().getString(GetUserTask.MESSAGE_KEY);
-                    Toast.makeText(getContext(), "Failed to get user's profile: " + message, Toast.LENGTH_LONG).show();
-                } else if (msg.getData().containsKey(GetUserTask.EXCEPTION_KEY)) {
-                    Exception ex = (Exception) msg.getData().getSerializable(GetUserTask.EXCEPTION_KEY);
-                    Toast.makeText(getContext(), "Failed to get user's profile because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-        }
     }
 
     /**
@@ -191,9 +165,6 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
     private class FollowingRecyclerViewAdapter extends RecyclerView.Adapter<FollowingHolder> {
 
         private final List<User> users = new ArrayList<>();
-
-
-
 
         /**
          * Adds new users to the list from which the RecyclerView retrieves the users it displays
@@ -296,7 +267,6 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
          * data.
          */
         public void loadMoreItems() {
-            Log.d(LOG_TAG,user.getAlias());
             presenter.loadMoreItems(user);
         }
 
