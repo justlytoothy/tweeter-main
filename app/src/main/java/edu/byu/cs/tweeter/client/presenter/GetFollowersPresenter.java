@@ -66,7 +66,7 @@ public class GetFollowersPresenter {
         if (!isLoading) {
             isLoading = true;
             view.setLoadingFooter(true);
-            followService.loadMoreItems(user,PAGE_SIZE,lastFollower, new GetFollowersObserver());
+            followService.loadMoreItemsFollowers(user,PAGE_SIZE,lastFollower, new GetFollowersObserver());
         }
     }
     public void getUser(AuthToken authToken, String username) {

@@ -57,11 +57,6 @@ public class GetFollowingPresenter {
         followService = new FollowService();
         userService = new UserService();
     }
-
-
-
-
-
     public void loadMoreItems(User user) {
         if (!isLoading) {
             isLoading = true;

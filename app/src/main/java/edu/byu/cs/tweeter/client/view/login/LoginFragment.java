@@ -57,8 +57,6 @@ public class LoginFragment extends Fragment implements LoginPresenter.View {
             @Override
             public void onClick(View view) {
                 errorView.setText(null);
-                System.out.println("bruh");
-                System.out.println(presenter);
                 presenter.initiateLogin(alias.getText().toString(),password.getText().toString());
             }
         });

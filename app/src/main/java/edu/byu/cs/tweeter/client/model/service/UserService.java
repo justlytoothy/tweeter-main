@@ -3,11 +3,14 @@ package edu.byu.cs.tweeter.client.model.service;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.LoginTask;
+import edu.byu.cs.tweeter.client.model.backgroundTask.LogoutTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.RegisterTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.handler.GetUserHandler;
 import edu.byu.cs.tweeter.client.model.backgroundTask.handler.LoginHandler;
+import edu.byu.cs.tweeter.client.model.backgroundTask.handler.LogoutHandler;
 import edu.byu.cs.tweeter.client.model.backgroundTask.handler.RegisterHandler;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -27,6 +30,10 @@ public class UserService {
         void handleSuccess(User user);
         void handleFailure(String message);
     }
+    public interface LogoutObserver {
+        void handleSuccess();
+        void handleFailure(String message);
+    }
 
     public void login(String username, String password, LoginObserver observer) {
         LoginTask loginTask = new LoginTask(username, password, new LoginHandler(observer));
@@ -43,6 +50,11 @@ public class UserService {
                 username, new GetUserHandler(observer));
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(getUserTask);
-
     }
+    public void logout(AuthToken authToken, LogoutObserver observer) {
+        LogoutTask logoutTask = new LogoutTask(authToken, new LogoutHandler(observer));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(logoutTask);
+    }
+
 }

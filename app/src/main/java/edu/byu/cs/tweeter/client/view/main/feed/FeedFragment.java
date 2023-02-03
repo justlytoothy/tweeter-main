@@ -51,9 +51,6 @@ public class FeedFragment extends Fragment implements FeedPresenter.View {
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
-
-    private static final int PAGE_SIZE = 10;
-
     private User user;
     private FeedPresenter presenter;
 
@@ -81,7 +78,6 @@ public class FeedFragment extends Fragment implements FeedPresenter.View {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_feed, container, false);
 
-        //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
 
         RecyclerView feedRecyclerView = view.findViewById(R.id.feedRecyclerView);
