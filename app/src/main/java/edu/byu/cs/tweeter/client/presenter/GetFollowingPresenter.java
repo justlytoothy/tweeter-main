@@ -62,7 +62,7 @@ public class GetFollowingPresenter {
             view.displayMessage("Failed to get following because of exception: " + ex.getMessage());
         }
         @Override
-        public void onSuccess(List<User> followees, boolean morePages) {
+        public void handleSuccess(List<User> followees, boolean morePages) {
             setLoading(false);
             view.setLoadingFooter(isLoading);
             setHasMorePages(morePages);

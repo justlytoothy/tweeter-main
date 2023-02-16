@@ -70,7 +70,7 @@ public class FeedPresenter {
         }
 
         @Override
-        public void onSuccess(List<Status> statuses, boolean morePages) {
+        public void handleSuccess(List<Status> statuses, boolean morePages) {
             setLoading(false);
             view.setLoadingFooter(isLoading);
             setHasMorePages(morePages);

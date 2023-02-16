@@ -61,7 +61,7 @@ public class GetFollowersPresenter {
             view.displayMessage("Failed to get followers because of exception: " + ex.getMessage());
         }
         @Override
-        public void onSuccess(List<User> followers, boolean morePages) {
+        public void handleSuccess(List<User> followers, boolean morePages) {
             setLoading(false);
             view.setLoadingFooter(isLoading);
             setHasMorePages(morePages);

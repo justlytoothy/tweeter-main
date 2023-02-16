@@ -1,19 +1,12 @@
 package edu.byu.cs.tweeter.client.presenter;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.SimpleNotificationObserver;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.model.service.UserService;
-import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
-import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class MainActivityPresenter {
@@ -62,9 +55,6 @@ public class MainActivityPresenter {
         statusService.postStatus(currUserAuthToken,post,currUser, new PostStatusObserver());
     }
 
-
-
-
     public class LogoutObserver implements UserService.LogoutObserver {
         @Override
         public void handleSuccess() {
@@ -88,7 +78,7 @@ public class MainActivityPresenter {
         }
 
         @Override
-        public void onSuccess(int count) {
+        public void handleSuccess(int count) {
             view.followingCountReceived(count);
         }
     }
@@ -105,7 +95,7 @@ public class MainActivityPresenter {
         }
 
         @Override
-        public void onSuccess(int count) {
+        public void handleSuccess(int count) {
             view.followerCountReceived(count);
         }
     }
@@ -122,42 +112,40 @@ public class MainActivityPresenter {
         }
 
         @Override
-        public void onSuccess(boolean isFollower) {
+        public void handleSuccess(boolean isFollower) {
             view.isFollowerReceived(isFollower);
         }
     }
-    public class UnfollowObserver implements FollowService.UnfollowObserver {
+    public class UnfollowObserver implements SimpleNotificationObserver {
 
         @Override
-        public void displayError(String message) {
+        public void handleFailure(String message) {
             view.displayMessage(message);
         }
-
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to unfollow because of exception: " + ex.getMessage());
 
         }
-
         @Override
-        public void onSuccess() {
+        public void handleSuccess() {
             view.updateFollowingOrNot(true);
         }
     }
-    public class FollowObserver implements FollowService.FollowObserver {
+    public class FollowObserver implements SimpleNotificationObserver {
 
         @Override
-        public void displayError(String message) {
+        public void handleFailure(String message) {
             view.displayMessage(message);
         }
 
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to follow because of exception: " + ex.getMessage());
         }
 
         @Override
-        public void onSuccess() {
+        public void handleSuccess() {
             view.updateFollowingOrNot(false);
         }
     }
@@ -174,7 +162,7 @@ public class MainActivityPresenter {
         }
 
         @Override
-        public void onSuccess() {
+        public void handleSuccess() {
             view.statusPosted();
         }
     }
