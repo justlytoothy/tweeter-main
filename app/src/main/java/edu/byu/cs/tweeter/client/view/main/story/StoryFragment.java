@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -30,14 +29,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.model.backgroundTask.GetStoryTask;
-import edu.byu.cs.tweeter.client.model.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.StoryPresenter;
+import edu.byu.cs.tweeter.client.presenter.PagedView;
+import edu.byu.cs.tweeter.client.presenter.StatusesPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -45,7 +41,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the "Story" tab.
  */
-public class StoryFragment extends Fragment implements StoryPresenter.View {
+public class StoryFragment extends Fragment implements PagedView<Status> {
     private static final String LOG_TAG = "StoryFragment";
     private static final String USER_KEY = "UserKey";
 
@@ -53,7 +49,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.View {
     private static final int ITEM_VIEW = 1;
 
     private User user;
-    private StoryPresenter presenter;
+    private StatusesPresenter presenter;
     private StoryRecyclerViewAdapter storyRecyclerViewAdapter;
 
     /**
@@ -89,7 +85,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.View {
         storyRecyclerViewAdapter = new StoryRecyclerViewAdapter();
         storyRecyclerView.setAdapter(storyRecyclerViewAdapter);
         storyRecyclerView.addOnScrollListener(new StoryRecyclerViewPaginationScrollListener(layoutManager));
-        presenter = new StoryPresenter(this);
+        presenter = new StatusesPresenter(this,"story");
         presenter.loadMoreItems(user);
         return view;
     }
@@ -378,7 +374,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.View {
             int totalItemCount = layoutManager.getItemCount();
             int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-            if (!presenter.isLoading() && presenter.isHasMorePages()) {
+            if (!presenter.isLoading() && presenter.hasMorePages()) {
                 if ((visibleItemCount + firstVisibleItemPosition) >=
                         totalItemCount && firstVisibleItemPosition >= 0) {
                     // Run this code later on the UI thread

@@ -13,7 +13,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.presenter.AuthPresenter;
 import edu.byu.cs.tweeter.client.presenter.LoginPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
@@ -22,7 +22,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the login screen.
  */
-public class LoginFragment extends Fragment implements LoginPresenter.View {
+public class LoginFragment extends Fragment implements AuthPresenter.View {
     private static final String LOG_TAG = "LoginFragment";
 
     private Toast loginToast;
@@ -65,18 +65,20 @@ public class LoginFragment extends Fragment implements LoginPresenter.View {
     }
 
     @Override
-    public void displayInfoMessage(String message) {
-        loginToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
-        loginToast.show();
+    public void displayMessage(String message) {
+        if (message.contains("Error")) {
+            errorView.setText(message);
+        }
+        else {
+            loginToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+            loginToast.show();
+        }
+
     }
 
-    @Override
-    public void displayErrorMessage(String message) {
-        errorView.setText(message);
-    }
 
     @Override
-    public void loginSuccessful(User user, AuthToken authToken,String message) {
+    public void handleSuccess(User user, AuthToken authToken,String message) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         loginToast.cancel();

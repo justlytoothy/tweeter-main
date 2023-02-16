@@ -2,7 +2,10 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.text.ParseException;
 
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.FollowerObserver;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.GetCountObserver;
 import edu.byu.cs.tweeter.client.model.backgroundTask.observer.SimpleNotificationObserver;
+
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.model.service.UserService;
@@ -55,25 +58,30 @@ public class MainActivityPresenter {
         statusService.postStatus(currUserAuthToken,post,currUser, new PostStatusObserver());
     }
 
-    public class LogoutObserver implements UserService.LogoutObserver {
+    public class LogoutObserver implements SimpleNotificationObserver {
         @Override
         public void handleSuccess() {
             view.logoutSuccess();
         }
+
         @Override
         public void handleFailure(String message) {
-            view.displayMessage(message);
+            view.displayMessage("Failed to log out: " + message);
+        }
+        @Override
+        public void handleException(Exception ex) {
+            view.displayMessage("Failed to log out because of exception: " + ex.getMessage());
         }
     }
-    public class FollowingCountObserver implements FollowService.FollowingCountObserver {
+    public class FollowingCountObserver implements GetCountObserver {
 
         @Override
-        public void displayError(String message) {
-            view.displayMessage(message);
+        public void handleFailure(String message) {
+            view.displayMessage("Failed to get following count: " + message);
         }
 
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to get following count because of exception: " + ex.getMessage());
         }
 
@@ -82,15 +90,15 @@ public class MainActivityPresenter {
             view.followingCountReceived(count);
         }
     }
-    public class FollowersCountObserver implements FollowService.FollowersCountObserver {
+    public class FollowersCountObserver implements GetCountObserver {
 
         @Override
-        public void displayError(String message) {
-            view.displayMessage(message);
+        public void handleFailure(String message) {
+            view.displayMessage("Failed to get followers count: " + message);
         }
 
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to get follower count because of exception: " + ex.getMessage());
         }
 
@@ -99,15 +107,15 @@ public class MainActivityPresenter {
             view.followerCountReceived(count);
         }
     }
-    public class IsFollowerObserver implements FollowService.IsFollowerObserver {
+    public class IsFollowerObserver implements FollowerObserver {
 
         @Override
-        public void displayError(String message) {
+        public void handleFailure(String message) {
             view.displayMessage(message);
         }
 
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to determine following relationship because of exception: " + ex.getMessage());
         }
 
@@ -120,7 +128,7 @@ public class MainActivityPresenter {
 
         @Override
         public void handleFailure(String message) {
-            view.displayMessage(message);
+            view.displayMessage("Failed to unfollow: " + message);
         }
         @Override
         public void handleException(Exception ex) {
@@ -136,7 +144,7 @@ public class MainActivityPresenter {
 
         @Override
         public void handleFailure(String message) {
-            view.displayMessage(message);
+            view.displayMessage("Failed to follow: " + message);
         }
 
         @Override
@@ -149,15 +157,15 @@ public class MainActivityPresenter {
             view.updateFollowingOrNot(false);
         }
     }
-    public class PostStatusObserver implements StatusService.PostStatusObserver {
+    public class PostStatusObserver implements SimpleNotificationObserver {
 
         @Override
-        public void displayError(String message) {
-            view.displayMessage(message);
+        public void handleFailure(String message) {
+            view.displayMessage("Failed to post the status: " + message);
         }
 
         @Override
-        public void displayException(Exception ex) {
+        public void handleException(Exception ex) {
             view.displayMessage("Failed to post the status because of exception: " + ex.getMessage());
         }
 

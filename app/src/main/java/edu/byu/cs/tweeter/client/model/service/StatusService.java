@@ -6,58 +6,40 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.model.backgroundTask.GetFeedTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.GetStoryTask;
 import edu.byu.cs.tweeter.client.model.backgroundTask.PostStatusTask;
-import edu.byu.cs.tweeter.client.model.backgroundTask.handler.GetFeedHandler;
-import edu.byu.cs.tweeter.client.model.backgroundTask.handler.GetStoryHandler;
-import edu.byu.cs.tweeter.client.model.backgroundTask.handler.PostStatusHandler;
-import edu.byu.cs.tweeter.client.presenter.FeedPresenter;
-import edu.byu.cs.tweeter.client.presenter.MainActivityPresenter;
-import edu.byu.cs.tweeter.client.presenter.StoryPresenter;
+import edu.byu.cs.tweeter.client.model.backgroundTask.handler.PagedNotificationHandler;
+import edu.byu.cs.tweeter.client.model.backgroundTask.handler.SimpleNotificationHandler;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.PagedNotificationObserver;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.SimpleNotificationObserver;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class StatusService {
-    public interface GetStoryObserver {
-        void displayError(String message);
-        void displayException(Exception ex);
-        void handleSuccess(List<Status> statuses, boolean morePages);
-    }
-    public interface GetFeedObserver {
-        void displayError(String message);
-        void displayException(Exception ex);
-        void handleSuccess(List<Status> statuses, boolean morePages);
-    }
-    public interface PostStatusObserver {
-        void displayError(String message);
-        void displayException(Exception ex);
-        void handleSuccess();
-    }
 
-    public void loadMoreItems(User user, int pageSize, Status lastStatus, StoryPresenter.GetStoryObserver getStoryObserver) {
+    public void loadMoreItems(User user, int pageSize, Status lastStatus, PagedNotificationObserver<Status> getStoryObserver) {
         GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
-                user, pageSize, lastStatus, new GetStoryHandler(getStoryObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(getStoryTask);
+                user, pageSize, lastStatus, new PagedNotificationHandler<Status>(getStoryObserver));
+        ServiceExecutor.execute(getStoryTask);
+
     }
 
-    public void loadMoreItemsFeed(User user, int pageSize, Status lastStatus, FeedPresenter.GetFeedObserver getFeedObserver) {
-        GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
-                user, pageSize, lastStatus, new GetFeedHandler(getFeedObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(getStoryTask);
+    public void loadMoreItemsFeed(User user, int pageSize, Status lastStatus, PagedNotificationObserver<Status> getFeedObserver) {
+        GetFeedTask getFeedTask = new GetFeedTask(Cache.getInstance().getCurrUserAuthToken(),
+                user, pageSize, lastStatus, new PagedNotificationHandler<Status>(getFeedObserver));
+        ServiceExecutor.execute(getFeedTask);
+
     }
 
-    public void postStatus(AuthToken currUserAuthToken, String post, User currUser, MainActivityPresenter.PostStatusObserver postStatusObserver) throws ParseException {
+    public void postStatus(AuthToken currUserAuthToken, String post, User currUser, SimpleNotificationObserver postStatusObserver) throws ParseException {
         Status newStatus = new Status(post,currUser,getFormattedDateTime(),parseURLs(post),parseMentions(post));
         PostStatusTask statusTask = new PostStatusTask(currUserAuthToken,
-                newStatus, new PostStatusHandler(postStatusObserver));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(statusTask);
+                newStatus, new SimpleNotificationHandler(postStatusObserver));
+        ServiceExecutor.execute(statusTask);
     }
 
 

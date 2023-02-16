@@ -8,41 +8,25 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
 import edu.byu.cs.tweeter.client.model.service.UserService;
-import edu.byu.cs.tweeter.model.domain.AuthToken;
-import edu.byu.cs.tweeter.model.domain.User;
 
-public class RegisterPresenter implements UserService.RegisterObserver {
-    public View view;
+public class RegisterPresenter extends AuthPresenter {
     private UserService userService;
-    public interface View {
-        public void displayInfoMessage(String message);
-        public void displayErrorMessage(String message);
-        public void registerSuccessful(User user, AuthToken authToken,String message);
-    }
-    public RegisterPresenter(RegisterPresenter.View view) {
-        this.view = view;
+
+    public RegisterPresenter(View view) {
+        super(view);
         userService = new UserService();
     }
 
-    @Override
-    public void handleSuccess(User user, AuthToken authToken,String message) {
-        view.registerSuccessful(user,authToken,message);
-    }
-
-    @Override
-    public void handleFailure(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void handleException(Exception exception) {
-        view.displayErrorMessage("Failed to register because of exception: " + exception.getMessage());
-    }
 
     public void initiateRegister( String fName, String lName, String username, String password, Drawable image) {
-        String validationMessage = validateRegistration(fName,lName,username,password,image);
+        this.fName = fName;
+        this.lName = lName;
+        this.username = username;
+        this.password = password;
+        this.image = image;
+        String validationMessage = validate();
         if (validationMessage == null) {
-            view.displayInfoMessage("Registering ....");
+            view.displayMessage("Registering ....");
             // Convert image to byte array.
             Bitmap imageFinal = ((BitmapDrawable) image).getBitmap();
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -53,11 +37,12 @@ public class RegisterPresenter implements UserService.RegisterObserver {
             userService.register(fName,lName,username,password,imageBytesBase64,this);
         }
         else {
-            view.displayErrorMessage(validationMessage);
+            view.displayMessage("Error: " + validationMessage);
         }
 
     }
-    public String validateRegistration(String fName, String lName, String username, String password, Drawable image) {
+    @Override
+    public String validate() {
         if (fName.length() == 0) {
             return "First Name cannot be empty.";
         }

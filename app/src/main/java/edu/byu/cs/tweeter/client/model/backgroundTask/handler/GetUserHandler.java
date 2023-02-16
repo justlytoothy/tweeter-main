@@ -7,15 +7,15 @@ import android.os.Message;
 import androidx.annotation.NonNull;
 
 import edu.byu.cs.tweeter.client.model.backgroundTask.GetUserTask;
-import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.UserObserver;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Message handler (i.e., observer) for GetUserTask.
  */
 public class GetUserHandler extends Handler {
-    private UserService.GetUserObserver observer;
-    public GetUserHandler(UserService.GetUserObserver observer) {
+    private UserObserver observer;
+    public GetUserHandler(UserObserver observer) {
         super(Looper.getMainLooper());
         this.observer = observer;
     }

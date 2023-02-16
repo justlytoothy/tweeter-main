@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,22 +23,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.model.backgroundTask.GetFollowersTask;
-import edu.byu.cs.tweeter.client.model.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.GetFollowersPresenter;
-import edu.byu.cs.tweeter.client.presenter.GetFollowingPresenter;
+import edu.byu.cs.tweeter.client.presenter.FollowPresenter;
+import edu.byu.cs.tweeter.client.presenter.PagedView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Implements the "Followers" tab.
  */
-public class FollowersFragment extends Fragment implements GetFollowersPresenter.View {
+public class FollowersFragment extends Fragment implements PagedView<User> {
 
     private static final String LOG_TAG = "FollowersFragment";
     private static final String USER_KEY = "UserKey";
@@ -47,12 +42,10 @@ public class FollowersFragment extends Fragment implements GetFollowersPresenter
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
 
-    private static final int PAGE_SIZE = 10;
-
     private User user;
 
     private FollowersRecyclerViewAdapter followersRecyclerViewAdapter;
-    private GetFollowersPresenter presenter;
+    private FollowPresenter presenter;
 
     /**
      * Creates an instance of the fragment and places the target user in an arguments
@@ -88,7 +81,7 @@ public class FollowersFragment extends Fragment implements GetFollowersPresenter
         followersRecyclerView.setAdapter(followersRecyclerViewAdapter);
 
         followersRecyclerView.addOnScrollListener(new FollowRecyclerViewPaginationScrollListener(layoutManager));
-        presenter = new GetFollowersPresenter(this);
+        presenter = new FollowPresenter(this,"follower");
         presenter.loadMoreItems(user);
         return view;
     }

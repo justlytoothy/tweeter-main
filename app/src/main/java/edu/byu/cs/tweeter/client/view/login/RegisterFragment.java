@@ -99,18 +99,20 @@ public class RegisterFragment extends Fragment implements RegisterPresenter.View
     }
 
     @Override
-    public void displayInfoMessage(String message) {
-        registeringToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
-        registeringToast.show();
+    public void displayMessage(String message) {
+        if (message.contains("Error:")) {
+            errorView.setText(message);
+
+        }
+        else {
+            registeringToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+            registeringToast.show();
+        }
+
     }
 
     @Override
-    public void displayErrorMessage(String message) {
-        errorView.setText(message);
-    }
-
-    @Override
-    public void registerSuccessful(User user, AuthToken authToken,String message) {
+    public void handleSuccess(User user, AuthToken authToken,String message) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         registeringToast.cancel();
