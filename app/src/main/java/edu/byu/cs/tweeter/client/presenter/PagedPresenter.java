@@ -70,7 +70,6 @@ public abstract class PagedPresenter<T> {
     public abstract void getItems(AuthToken authToken, User targetUser, int pageSize, T lastItem);
     public abstract String getDescription();
     public class GetUserObserver implements UserObserver {
-
         @Override
         public void handleSuccess(User user) {
             view.userReceived(user);

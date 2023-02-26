@@ -9,7 +9,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public abstract class AuthPresenter implements AuthObserver {
     public View view;
-    private UserService userService;
+    public UserService userService;
     public String fName;
     public String lName;
     public String username;

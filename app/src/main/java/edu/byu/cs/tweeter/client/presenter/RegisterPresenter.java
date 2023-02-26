@@ -10,7 +10,6 @@ import java.util.Base64;
 import edu.byu.cs.tweeter.client.model.service.UserService;
 
 public class RegisterPresenter extends AuthPresenter {
-    private UserService userService;
 
     public RegisterPresenter(View view) {
         super(view);

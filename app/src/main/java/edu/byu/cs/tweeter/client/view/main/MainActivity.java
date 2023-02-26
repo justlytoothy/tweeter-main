@@ -139,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
         //Clear everything so that the main activity is recreated with the login page.
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         //Clear user data (cached data).
-        Cache.getInstance().clearCache();
         startActivity(intent);
     }
 
@@ -174,7 +173,13 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
 
     @Override
     public void displayMessage(String message) {
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+        if (message == "Logging Out...") {
+            logOutToast = Toast.makeText(this, "Logging Out...", Toast.LENGTH_LONG);
+            logOutToast.show();
+        }
+        else {
+            Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
