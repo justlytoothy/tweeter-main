@@ -16,7 +16,7 @@ public class StatusesPresenter extends PagedPresenter<Status> {
     }
 
     @Override
-    public void getItems(AuthToken authToken, User targetUser, int pageSize, Status lastItem) {
+    public void getItems(User targetUser, Status lastItem) {
         if (this.type.equals("feed")) {
             statusService.loadMoreItemsFeed(targetUser,PAGE_SIZE,lastItem, new PageObserver());
         }

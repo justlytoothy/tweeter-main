@@ -148,7 +148,7 @@ public class StoryFragment extends Fragment implements PagedView<Status> {
                 @Override
                 public void onClick(View view) {
                     presenter.getUser(Cache.getInstance().getCurrUserAuthToken(), userAlias.getText().toString());
-                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_SHORT).show();
                 }
             });
         }

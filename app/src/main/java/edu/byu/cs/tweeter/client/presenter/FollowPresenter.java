@@ -8,7 +8,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 public class FollowPresenter extends PagedPresenter<User> {
     String type;
     @Override
-    public void getItems(AuthToken authToken, User targetUser, int pageSize, User lastItem) {
+    public void getItems(User targetUser, User lastItem) {
         if (type.equals("follower")) {
             followService.loadMoreItemsFollowers(targetUser,PAGE_SIZE,lastItem, new PageObserver());
 

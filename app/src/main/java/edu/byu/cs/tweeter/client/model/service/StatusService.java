@@ -25,7 +25,6 @@ public class StatusService {
         GetStoryTask getStoryTask = new GetStoryTask(Cache.getInstance().getCurrUserAuthToken(),
                 user, pageSize, lastStatus, new PagedNotificationHandler<Status>(getStoryObserver));
         ServiceExecutor.execute(getStoryTask);
-
     }
 
     public void loadMoreItemsFeed(User user, int pageSize, Status lastStatus, PagedNotificationObserver<Status> getFeedObserver) {

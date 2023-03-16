@@ -59,15 +59,16 @@ public abstract class PagedPresenter<T> {
         if (!isLoading) {
             isLoading = true;
             view.setLoadingFooter(true);
-            getItems(authToken, targetUser, PAGE_SIZE, lastItem);
+            getItems(targetUser, lastItem);
         }
     }
 
     public void getUser(AuthToken authToken,String user) {
+
         userService.getUser(authToken,user, new GetUserObserver());
     }
 
-    public abstract void getItems(AuthToken authToken, User targetUser, int pageSize, T lastItem);
+    public abstract void getItems(User targetUser, T lastItem);
     public abstract String getDescription();
     public class GetUserObserver implements UserObserver {
         @Override
