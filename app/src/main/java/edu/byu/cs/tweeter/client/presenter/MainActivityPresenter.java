@@ -76,7 +76,7 @@ public class MainActivityPresenter {
     public void postStatus(AuthToken currUserAuthToken, String post, User currUser) {
         view.displayMessage("Posting Status...");
         try {
-            Status newStatus = new Status(post,currUser,getFormattedDateTime(),parseURLs(post),parseMentions(post));
+            Status newStatus = new Status(post,currUser,Long.getLong(getFormattedDateTime()),parseURLs(post),parseMentions(post));
             getStatusService().postStatus(currUserAuthToken,newStatus, new PostStatusObserver());
         }
         catch(ParseException e) {
