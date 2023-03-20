@@ -15,13 +15,14 @@ public class StatusesPresenter extends PagedPresenter<Status> {
         this.type = type;
     }
 
+
     @Override
     public void getItems(User targetUser, Status lastItem) {
         if (this.type.equals("feed")) {
-            statusService.loadMoreItemsFeed(targetUser,PAGE_SIZE,lastItem, new PageObserver());
+            getStatusService().loadMoreItemsFeed(targetUser,PAGE_SIZE,lastItem, new PageObserver());
         }
         else {
-            statusService.loadMoreItems(targetUser,PAGE_SIZE,lastItem, new PageObserver());
+            getStatusService().loadMoreItems(targetUser,PAGE_SIZE,lastItem, new PageObserver());
         }
     }
 

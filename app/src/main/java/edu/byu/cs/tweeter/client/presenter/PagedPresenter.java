@@ -24,11 +24,28 @@ public abstract class PagedPresenter<T> {
 
     public PagedPresenter(PagedView<T> view) {
         this.view = view;
-        followService = new FollowService();
-        userService = new UserService();
-        statusService = new StatusService();
+        followService = getFollowService();
+        userService = getUserService();
+        statusService = getStatusService();
     }
-
+    protected StatusService getStatusService() {
+        if (statusService == null) {
+            statusService = new StatusService();
+        }
+        return statusService;
+    }
+    protected UserService getUserService() {
+        if (userService == null) {
+            userService = new UserService();
+        }
+        return userService;
+    }
+    protected FollowService getFollowService() {
+        if (followService == null) {
+            followService = new FollowService();
+        }
+        return followService;
+    }
     public T getLastItem() {
         return lastItem;
     }
@@ -65,7 +82,7 @@ public abstract class PagedPresenter<T> {
 
     public void getUser(AuthToken authToken,String user) {
 
-        userService.getUser(authToken,user, new GetUserObserver());
+        getUserService().getUser(authToken,user, new GetUserObserver());
     }
 
     public abstract void getItems(User targetUser, T lastItem);

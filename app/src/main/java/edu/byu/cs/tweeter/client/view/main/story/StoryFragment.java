@@ -47,6 +47,7 @@ public class StoryFragment extends Fragment implements PagedView<Status> {
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
+    private Toast getToast;
 
     private User user;
     private StatusesPresenter presenter;
@@ -98,6 +99,7 @@ public class StoryFragment extends Fragment implements PagedView<Status> {
 
     @Override
     public void userReceived(User user) {
+        getToast.cancel();
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
@@ -148,7 +150,8 @@ public class StoryFragment extends Fragment implements PagedView<Status> {
                 @Override
                 public void onClick(View view) {
                     presenter.getUser(Cache.getInstance().getCurrUserAuthToken(), userAlias.getText().toString());
-                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_SHORT).show();
+                    getToast = Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG);
+                    getToast.show();
                 }
             });
         }
@@ -179,7 +182,8 @@ public class StoryFragment extends Fragment implements PagedView<Status> {
 
                         String clickable = s.subSequence(start, end).toString();
                         presenter.getUser(Cache.getInstance().getCurrUserAuthToken(), clickable);
-                        Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
+                        getToast = Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG);
+                        getToast.show();
                     }
 
                     @Override

@@ -41,6 +41,7 @@ public class FollowersFragment extends Fragment implements PagedView<User> {
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
+    private Toast getToast;
 
     private User user;
 
@@ -105,6 +106,7 @@ public class FollowersFragment extends Fragment implements PagedView<User> {
 
     @Override
     public void userReceived(User user) {
+        getToast.cancel();
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
@@ -143,7 +145,8 @@ public class FollowersFragment extends Fragment implements PagedView<User> {
                 public void onClick(View view) {
                     presenter.getUser(Cache.getInstance().getCurrUserAuthToken(),
                             userAlias.getText().toString());
-                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
+                    getToast = Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG);
+                    getToast.show();
                 }
             });
         }

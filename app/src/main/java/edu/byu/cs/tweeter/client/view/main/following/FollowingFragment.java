@@ -43,6 +43,7 @@ public class FollowingFragment extends Fragment implements PagedView<User> {
 
 
     private User user;
+    private Toast getToast;
 
     private FollowingRecyclerViewAdapter followingRecyclerViewAdapter;
     private FollowPresenter presenter;
@@ -104,6 +105,7 @@ public class FollowingFragment extends Fragment implements PagedView<User> {
 
     @Override
     public void userReceived(User user) {
+        getToast.cancel();
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
@@ -141,7 +143,8 @@ public class FollowingFragment extends Fragment implements PagedView<User> {
                 public void onClick(View view) {
                     presenter.getUser(Cache.getInstance().getCurrUserAuthToken(),
                             userAlias.getText().toString());
-                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
+                    getToast = Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG);
+                    getToast.show();
                 }
             });
         }

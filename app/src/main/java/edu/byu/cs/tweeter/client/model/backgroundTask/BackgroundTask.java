@@ -32,7 +32,7 @@ public abstract class BackgroundTask implements Runnable {
         try {
             runTask();
         } catch (Exception ex) {
-            Log.e(LOG_TAG, ex.getMessage(), ex);
+//            Log.e(LOG_TAG, ex.getMessage(), ex);
             sendExceptionMessage(ex);
         }
     }

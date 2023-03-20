@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
 
     private Toast logOutToast;
     private Toast postingToast;
+    private Toast followToast;
     private User selectedUser;
     private TextView followeeCount;
     private TextView followerCount;
@@ -104,11 +105,13 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
                 if (followButton.getText().toString().equals(v.getContext().getString(R.string.following))) {
                     presenter.unfollow(Cache.getInstance().getCurrUserAuthToken(),
                             selectedUser);
-                    Toast.makeText(MainActivity.this, "Removing " + selectedUser.getName() + "...", Toast.LENGTH_LONG).show();
+                    followToast = Toast.makeText(MainActivity.this, "Removing " + selectedUser.getName() + "...", Toast.LENGTH_LONG);
+                    followToast.show();
                 } else {
                     presenter.follow(Cache.getInstance().getCurrUserAuthToken(),
                             selectedUser);
-                    Toast.makeText(MainActivity.this, "Adding " + selectedUser.getName() + "...", Toast.LENGTH_LONG).show();
+                    followToast = Toast.makeText(MainActivity.this, "Adding " + selectedUser.getName() + "...", Toast.LENGTH_LONG);
+                    followToast.show();
                 }
             }
         });
@@ -150,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
             presenter.postStatus(Cache.getInstance().getCurrUserAuthToken(), post, Cache.getInstance().getCurrUser());
         } catch (Exception ex) {
             Log.e(LOG_TAG, ex.getMessage(), ex);
+            postingToast.cancel();
             Toast.makeText(this, "Failed to post the status because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -168,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
             followButton.setBackgroundColor(getResources().getColor(R.color.white));
             followButton.setTextColor(getResources().getColor(R.color.lightGray));
         }
+        followToast.cancel();
         followButton.setEnabled(true);
     }
 

@@ -41,7 +41,7 @@ public class MainActivityPresenterUnitTest {
             }
         };
         Mockito.doAnswer(answer).when(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
-        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User());
+        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User(false));
         Mockito.verify(mockView).displayMessage("Posting Status...");
         Mockito.verify(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
         Mockito.verify(mockView).statusPosted();
@@ -57,7 +57,7 @@ public class MainActivityPresenterUnitTest {
             }
         };
         Mockito.doAnswer(answer).when(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
-        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User());
+        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User(false));
         Mockito.verify(mockView).displayMessage("Posting Status...");
         Mockito.verify(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
         Mockito.verify(mockView).displayMessage("Failed to post the status: Uh oh... an error occurred");
@@ -73,7 +73,7 @@ public class MainActivityPresenterUnitTest {
             }
         };
         Mockito.doAnswer(answer).when(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
-        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User());
+        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User(false));
         Mockito.verify(mockView).displayMessage("Posting Status...");
         Mockito.verify(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
         Mockito.verify(mockView).displayMessage("Failed to post the status because of exception: Uh oh... an exception occurred");
@@ -92,6 +92,6 @@ public class MainActivityPresenterUnitTest {
             }
         };
         Mockito.doAnswer(answer).when(mockService).postStatus(Mockito.any(),Mockito.any(),Mockito.any());
-        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User());
+        mainPresenterSpy.postStatus(new AuthToken(),"Example",new User(false));
     }
 }
