@@ -9,9 +9,11 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.response.PagedResponse;
 import edu.byu.cs.tweeter.util.Pair;
 
-public abstract class PagedTask<T> extends AuthenticatedTask {
+public abstract class PagedTask<T, J extends PagedResponse> extends AuthenticatedTask {
 
     public static final String ITEMS_KEY = "items";
     public static final String MORE_PAGES_KEY = "more-pages";
@@ -65,18 +67,25 @@ public abstract class PagedTask<T> extends AuthenticatedTask {
 
     @Override
     protected final void runTask() throws IOException {
-        Pair<List<T>, Boolean> pageOfItems = getItems();
-
-        items = pageOfItems.getFirst();
-        hasMorePages = pageOfItems.getSecond();
-
-        // Call sendSuccessMessage if successful
-        sendSuccessMessage();
-        // or call sendFailedMessage if not successful
-        // sendFailedMessage()
+        try {
+            J res = getItems();
+            if (res.isSuccess()) {
+                Pair<List<T>, Boolean> pageOfItems = new Pair<List<T>,Boolean>(res.getItems(),res.getHasMorePages());
+                items = pageOfItems.getFirst();
+                hasMorePages = pageOfItems.getSecond();
+                sendSuccessMessage();
+            }
+            else {
+                sendFailedMessage(res.getMessage());
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            sendExceptionMessage(e);
+        }
     }
 
-    protected abstract Pair<List<T>, Boolean> getItems();
+    protected abstract J getItems() throws IOException, TweeterRemoteException;
 
     protected abstract List<User> getUsersForItems(List<T> items);
 
@@ -84,5 +93,9 @@ public abstract class PagedTask<T> extends AuthenticatedTask {
     protected final void loadSuccessBundle(Bundle msgBundle) {
         msgBundle.putSerializable(ITEMS_KEY, (Serializable) items);
         msgBundle.putBoolean(MORE_PAGES_KEY, hasMorePages);
+    }
+
+    public boolean isHasMorePages() {
+        return hasMorePages;
     }
 }

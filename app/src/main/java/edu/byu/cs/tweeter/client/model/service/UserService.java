@@ -28,7 +28,6 @@ public class UserService {
     }
     public void logout(AuthToken authToken, SimpleNotificationObserver observer) {
         LogoutTask logoutTask = new LogoutTask(authToken, new SimpleNotificationHandler(observer));
-        System.out.println("here");
         ServiceExecutor.execute(logoutTask);
 
     }

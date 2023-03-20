@@ -49,15 +49,15 @@ public class FollowService {
 
     }
 
-    public void follow(AuthToken currUserAuthToken, User selectedUser, SimpleNotificationObserver followObserver) {
-        FollowTask followTask = new FollowTask(currUserAuthToken,
+    public void follow(AuthToken currUserAuthToken, User currentUser,User selectedUser, SimpleNotificationObserver followObserver) {
+        FollowTask followTask = new FollowTask(currUserAuthToken,currentUser,
                 selectedUser, new SimpleNotificationHandler(followObserver));
         ServiceExecutor.execute(followTask);
 
     }
 
-    public void unfollow(AuthToken currUserAuthToken, User selectedUser, SimpleNotificationObserver unfollowObserver) {
-        UnfollowTask unfollowTask = new UnfollowTask(currUserAuthToken,
+    public void unfollow(AuthToken currUserAuthToken, User currentUser, User selectedUser, SimpleNotificationObserver unfollowObserver) {
+        UnfollowTask unfollowTask = new UnfollowTask(currUserAuthToken, currentUser,
                 selectedUser, new SimpleNotificationHandler(unfollowObserver));
         ServiceExecutor.execute(unfollowTask);
 

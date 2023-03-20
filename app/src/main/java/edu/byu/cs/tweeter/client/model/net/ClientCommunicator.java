@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.FollowerRequest;
 
 class ClientCommunicator {
 
@@ -30,6 +31,7 @@ class ClientCommunicator {
 
     <T> T doPost(String urlPath, final Object requestInfo, Map<String, String> headers, Class<T> returnType)
             throws IOException, TweeterRemoteException {
+
         RequestStrategy requestStrategy = new RequestStrategy() {
             @Override
             public void setRequestMethod(HttpURLConnection connection) throws IOException {

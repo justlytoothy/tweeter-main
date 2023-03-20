@@ -3,8 +3,12 @@ package edu.byu.cs.tweeter.client.model.backgroundTask;
 import android.os.Bundle;
 import android.os.Handler;
 
+import java.io.IOException;
+
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.response.CountResponse;
 
 public abstract class GetCountTask extends AuthenticatedTask {
 
@@ -29,15 +33,23 @@ public abstract class GetCountTask extends AuthenticatedTask {
 
     @Override
     protected void runTask() {
-        count = runCountTask();
-
-        // Call sendSuccessMessage if successful
-        sendSuccessMessage();
-        // or call sendFailedMessage if not successful
-        // sendFailedMessage()
+        try {
+            CountResponse res = runCountTask();
+            if (res.isSuccess()) {
+                count = res.getCount();
+                sendSuccessMessage();
+            }
+            else {
+                sendFailedMessage(res.getMessage());
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            sendExceptionMessage(e);
+        }
     }
 
-    protected abstract int runCountTask();
+    protected abstract CountResponse runCountTask() throws IOException, TweeterRemoteException;
 
     @Override
     protected void loadSuccessBundle(Bundle msgBundle) {

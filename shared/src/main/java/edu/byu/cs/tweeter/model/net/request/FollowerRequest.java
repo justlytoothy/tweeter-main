@@ -4,32 +4,32 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 
 /**
  * Contains all the information needed to make a request to have the server return the next page of
- * followees for a specified follower.
+ * followees for a specified followee.
  */
-public class FollowingRequest {
+public class FollowerRequest {
 
     private AuthToken authToken;
-    public String followerAlias;
+    public String followeeAlias;
     private int limit;
     private String lastFolloweeAlias;
 
     /**
      * Allows construction of the object from Json. Private so it won't be called in normal code.
      */
-    private FollowingRequest() {}
+    private FollowerRequest() {}
 
     /**
      * Creates an instance.
      *
-     * @param followerAlias the alias of the user whose followees are to be returned.
+     * @param followeeAlias the alias of the user whose followees are to be returned.
      * @param limit the maximum number of followees to return.
      * @param lastFolloweeAlias the alias of the last followee that was returned in the previous request (null if
      *                     there was no previous request or if no followees were returned in the
      *                     previous request).
      */
-    public FollowingRequest(AuthToken authToken, String followerAlias, int limit, String lastFolloweeAlias) {
+    public FollowerRequest(AuthToken authToken, String followeeAlias, int limit, String lastFolloweeAlias) {
         this.authToken = authToken;
-        this.followerAlias = followerAlias;
+        this.followeeAlias = followeeAlias;
         this.limit = limit;
         this.lastFolloweeAlias = lastFolloweeAlias;
     }
@@ -53,21 +53,21 @@ public class FollowingRequest {
     }
 
     /**
-     * Returns the follower whose followees are to be returned by this request.
+     * Returns the followee whose followees are to be returned by this request.
      *
-     * @return the follower.
+     * @return the followee.
      */
-    public String getFollowerAlias() {
-        return followerAlias;
+    public String getFolloweeAlias() {
+        return followeeAlias;
     }
 
     /**
-     * Sets the follower.
+     * Sets the followee.
      *
-     * @param followerAlias the follower.
+     * @param followeeAlias the followee.
      */
-    public void setFollowerAlias(String followerAlias) {
-        this.followerAlias = followerAlias;
+    public void setFollowerAlias(String followeeAlias) {
+        this.followeeAlias = followeeAlias;
     }
 
     /**

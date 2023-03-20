@@ -4,6 +4,8 @@ import android.os.Handler;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
+import edu.byu.cs.tweeter.model.net.request.SendStatusRequest;
+import edu.byu.cs.tweeter.model.net.response.SendStatusResponse;
 
 /**
  * Background task that posts a new status sent by a user.
@@ -24,12 +26,19 @@ public class PostStatusTask extends AuthenticatedTask {
     @Override
     protected void runTask() {
         // We could do this from the presenter, without a task and handler, but we will
-        // eventually access the database from here when we aren't using dummy data.
-
-        // Call sendSuccessMessage if successful
-        sendSuccessMessage();
-        // or call sendFailedMessage if not successful
-        // sendFailedMessage()
+        try {
+            SendStatusResponse res = serverFacade.sendStatus(new SendStatusRequest(status,getAuthToken()),"status");
+            if (res.isSuccess()) {
+                sendSuccessMessage();
+            }
+            else {
+                sendFailedMessage(res.getMessage());
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            sendExceptionMessage(e);
+        }
     }
 
 }

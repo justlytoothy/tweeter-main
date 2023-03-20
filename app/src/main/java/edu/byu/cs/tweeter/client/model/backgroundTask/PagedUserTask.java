@@ -6,8 +6,9 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.response.UserListResponse;
 
-public abstract class PagedUserTask extends PagedTask<User> {
+public abstract class PagedUserTask extends PagedTask<User, UserListResponse> {
     protected PagedUserTask(AuthToken authToken, User targetUser, int limit, User lastItem, Handler messageHandler) {
         super(authToken, targetUser, limit, lastItem, messageHandler);
     }

@@ -9,9 +9,9 @@ import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 /**
  * A paged response for a {@link FollowingRequest}.
  */
-public class FollowingResponse extends PagedResponse {
+public class IsFollowingResponse extends Response {
 
-    private List<User> followees;
+    private boolean following;
 
     /**
      * Creates a response indicating that the corresponding request was unsuccessful. Sets the
@@ -19,28 +19,22 @@ public class FollowingResponse extends PagedResponse {
      *
      * @param message a message describing why the request was unsuccessful.
      */
-    public FollowingResponse(String message) {
-        super(false, message, false);
+    public IsFollowingResponse(String message) {
+        super(false, message);
     }
 
     /**
      * Creates a response indicating that the corresponding request was successful.
      *
-     * @param followees the followees to be included in the result.
-     * @param hasMorePages an indicator of whether more data is available for the request.
+     * @param following whether or not user is following target user
      */
-    public FollowingResponse(List<User> followees, boolean hasMorePages) {
-        super(true, hasMorePages);
-        this.followees = followees;
+    public IsFollowingResponse(boolean following) {
+        super(true, null);
+        this.following = following;
     }
 
-    /**
-     * Returns the followees for the corresponding request.
-     *
-     * @return the followees.
-     */
-    public List<User> getFollowees() {
-        return followees;
+    public boolean isFollowing() {
+        return following;
     }
 
     @Override
@@ -53,15 +47,15 @@ public class FollowingResponse extends PagedResponse {
             return false;
         }
 
-        FollowingResponse that = (FollowingResponse) param;
+        IsFollowingResponse that = (IsFollowingResponse) param;
 
-        return (Objects.equals(followees, that.followees) &&
+        return (Objects.equals(following, that.isFollowing()) &&
                 Objects.equals(this.getMessage(), that.getMessage()) &&
                 this.isSuccess() == that.isSuccess());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(followees);
+        return Objects.hash(following);
     }
 }

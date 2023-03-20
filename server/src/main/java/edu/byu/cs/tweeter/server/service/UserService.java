@@ -2,15 +2,18 @@ package edu.byu.cs.tweeter.server.service;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.GetUserRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
+import edu.byu.cs.tweeter.model.net.request.LogoutRequest;
 import edu.byu.cs.tweeter.model.net.request.SignupRequest;
-import edu.byu.cs.tweeter.model.net.response.LoginResponse;
-import edu.byu.cs.tweeter.model.net.response.SignupResponse;
+import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
+import edu.byu.cs.tweeter.model.net.response.AuthResponse;
+import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.util.FakeData;
 
 public class UserService {
 
-    public LoginResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
         if(request.getUsername() == null){
             throw new RuntimeException("[Bad Request] Missing a username");
         } else if(request.getPassword() == null) {
@@ -20,7 +23,7 @@ public class UserService {
         // TODO: Generates dummy data. Replace with a real implementation.
         User user = getDummyUser();
         AuthToken authToken = getDummyAuthToken();
-        return new LoginResponse(user, authToken);
+        return new AuthResponse(user, authToken);
     }
 
     /**
@@ -53,7 +56,7 @@ public class UserService {
         return FakeData.getInstance();
     }
 
-    public SignupResponse signup(SignupRequest request) {
+    public AuthResponse signup(SignupRequest request) {
         if(request.getUsername() == null){
             throw new RuntimeException("[Bad Request] Missing a username");
         }
@@ -73,6 +76,17 @@ public class UserService {
         // TODO: Generates dummy data. Replace with a real implementation.
         User user = getDummyUser();
         AuthToken authToken = getDummyAuthToken();
-        return new SignupResponse(user, authToken);
+        return new AuthResponse(user, authToken);
+    }
+
+    public LogoutResponse logout(LogoutRequest request) {
+        if(request.getAuthToken() == null){
+            throw new RuntimeException("[Bad Request] Missing an auth token");
+        }
+        return new LogoutResponse();
+    }
+
+    public GetUserResponse getUser(GetUserRequest request) {
+        return new GetUserResponse(getFakeData().findUserByAlias(request.getUsername()));
     }
 }

@@ -2,11 +2,15 @@ package edu.byu.cs.tweeter.client.model.backgroundTask;
 
 import android.os.Handler;
 
+import java.io.IOException;
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.StatusesRequest;
+import edu.byu.cs.tweeter.model.net.response.StatusesResponse;
 import edu.byu.cs.tweeter.util.Pair;
 
 /**
@@ -20,7 +24,8 @@ public class GetStoryTask extends PagedStatusTask {
     }
 
     @Override
-    protected Pair<List<Status>, Boolean> getItems() {
-        return getFakeData().getPageOfStatus(getLastItem(), getLimit());
+    protected StatusesResponse getItems() throws IOException, TweeterRemoteException {
+        StatusesResponse res = serverFacade.getStory(new StatusesRequest(getAuthToken(),getTargetUser().getAlias(),getLimit(),getLastItem()),"statuses/story");
+        return res;
     }
 }
