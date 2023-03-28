@@ -5,14 +5,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.backgroundTask.observer.PagedNotificationObserver;
+import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.CountRequest;
+import edu.byu.cs.tweeter.model.net.request.FollowerRequest;
+import edu.byu.cs.tweeter.model.net.request.SignupRequest;
+import edu.byu.cs.tweeter.model.net.response.AuthResponse;
+import edu.byu.cs.tweeter.model.net.response.CountResponse;
+import edu.byu.cs.tweeter.model.net.response.UserListResponse;
 import edu.byu.cs.tweeter.util.FakeData;
 
 public class StatusServiceTest {
@@ -125,4 +134,5 @@ public class StatusServiceTest {
         Assertions.assertNull(observer.getException());
 
     }
+
 }

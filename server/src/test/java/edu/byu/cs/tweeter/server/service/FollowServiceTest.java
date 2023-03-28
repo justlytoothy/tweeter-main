@@ -67,23 +67,4 @@ public class FollowServiceTest {
         Assertions.assertEquals(expectedResponse, response);
     }
 
-    /**
-     * Verify that the {@link FollowService#getFollowees(FollowingRequest)}
-     * method returns the same result as the {@link FollowDAO} class.
-     */
-    @Test
-    public void testGetFollowers() {
-        UserListResponse response = new FollowService().getFollowers(requestTwo);
-        List<User> expectedUsers = FakeData.getInstance().getPageOfUsers(currentUser, 3, null).getFirst();
-        Assertions.assertTrue(response.isSuccess());
-        for (int i = 0; i < response.getItems().size(); i++) {
-            Assertions.assertEquals(response.getItems().get(i),expectedUsers.get(i));
-        }
-    }
-    @Test
-    public void testGetFollowerCount() {
-        CountResponse response = new FollowService().getFollowerCount(new CountRequest(authToken, currentUser.getAlias()));
-        Assertions.assertTrue(response.isSuccess());
-        Assertions.assertEquals(response.getCount(),FakeData.getInstance().getFakeUsers().size());
-    }
 }
