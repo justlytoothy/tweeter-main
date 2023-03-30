@@ -21,26 +21,12 @@ import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.server.dao.beans.UserBean;
 import edu.byu.cs.tweeter.server.service.Security;
 import edu.byu.cs.tweeter.util.FakeData;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-public class UserDAO extends BaseDAO implements IUserDAO {
+public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
 
-    public UserDAO() {
-        this.initializeDatabase();
-        this.switchTable("user");
-    }
-    private static DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-            .region(Region.US_EAST_1)
-            .build();
-
-    private static DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-            .dynamoDbClient(dynamoDbClient)
-            .build();
 
     @Override
     public AuthResponse login(LoginRequest request) {
@@ -66,11 +52,9 @@ public class UserDAO extends BaseDAO implements IUserDAO {
 
     @Override
     public AuthResponse signup(SignupRequest request) {
-
-        // TODO: Generates dummy data. Replace with a real implementation.
         String encryptedPassword = Security.encryptPassword(request.getPassword());
         String link = storeImage(request.getImage(),request.getUsername());
-        DynamoDbTable<UserBean> table = enhancedClient.table("user",TableSchema.fromBean(UserBean.class));
+        table = enhancedClient.table("user",TableSchema.fromBean(UserBean.class));
         UserBean newUser = new UserBean();
         newUser.setFirst_name(request.getFirstName());
         newUser.setLast_name(request.getLastName());
@@ -85,13 +69,20 @@ public class UserDAO extends BaseDAO implements IUserDAO {
 
     @Override
     public LogoutResponse logout(LogoutRequest request) {
+        //TODO delete auth token
         return new LogoutResponse();
     }
 
     @Override
     public GetUserResponse getUser(GetUserRequest request) {
-        User user = userToUser(getUserUsername(request.getUsername()));
-        return new GetUserResponse(user);
+        try {
+            User user = userToUser(getUserUsername(request.getUsername()));
+            return new GetUserResponse(user);
+        }
+        catch (Exception e) {
+            return new GetUserResponse(e.getMessage());
+        }
+
     }
     public UserBean getUserUsername(String alias) {
         DynamoDbTable<UserBean> table = enhancedClient.table("user", TableSchema.fromBean(UserBean.class));
@@ -100,15 +91,21 @@ public class UserDAO extends BaseDAO implements IUserDAO {
         return user;
     }
 
-
-    /**
-     * Returns the dummy user to be returned by the login operation.
-     * This is written as a separate method to allow mocking of the dummy user.
-     *
-     * @return a dummy user.
-     */
-    User getDummyUser() {
-        return getFakeData().getFirstUser();
+    private String storeImage(String image, String alias) {
+        AmazonS3 s3 = AmazonS3ClientBuilder
+                .standard()
+                .withRegion("us-east-1")
+                .build();
+        byte[] byteArray = Base64.getDecoder().decode(image);
+        ObjectMetadata data = new ObjectMetadata();
+        data.setContentLength(byteArray.length);
+        data.setContentType("image/jpeg");
+        PutObjectRequest request = new PutObjectRequest("tweeter-images-jschilling", alias, new ByteArrayInputStream(byteArray), data).withCannedAcl(CannedAccessControlList.PublicRead);
+        s3.putObject(request);
+        return "https://tweeter-images-jschilling.s3.us-east-1.amazonaws.com/" + alias;
+    }
+    private User userToUser(UserBean userBean) {
+        return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }
 
     /**
@@ -129,23 +126,6 @@ public class UserDAO extends BaseDAO implements IUserDAO {
      */
     FakeData getFakeData() {
         return FakeData.getInstance();
-    }
-
-    private String storeImage(String image, String alias) {
-        AmazonS3 s3 = AmazonS3ClientBuilder
-                .standard()
-                .withRegion("us-east-1")
-                .build();
-        byte[] byteArray = Base64.getDecoder().decode(image);
-        ObjectMetadata data = new ObjectMetadata();
-        data.setContentLength(byteArray.length);
-        data.setContentType("image/jpeg");
-        PutObjectRequest request = new PutObjectRequest("tweeter-images-jschilling", alias, new ByteArrayInputStream(byteArray), data).withCannedAcl(CannedAccessControlList.PublicRead);
-        s3.putObject(request);
-        return "https://tweeter-images-jschilling.s3.us-east-1.amazonaws.com/" + alias;
-    }
-    private User userToUser(UserBean userBean) {
-        return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }
 
 

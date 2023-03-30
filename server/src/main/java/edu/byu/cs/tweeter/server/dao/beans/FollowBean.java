@@ -8,7 +8,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 
 
 @DynamoDbBean
-public class Follows {
+public class FollowBean {
     private String follower_handle;
 
     private String followee_handle;
