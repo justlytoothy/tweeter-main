@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.service;
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
+
 import edu.byu.cs.tweeter.model.net.request.CountRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowerRequest;
@@ -11,7 +13,6 @@ import edu.byu.cs.tweeter.model.net.response.IsFollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.UserListResponse;
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
 import edu.byu.cs.tweeter.server.dao.IFollowDAO;
-import edu.byu.cs.tweeter.server.dao.IUserDAO;
 
 /**
  * Contains the business logic for getting the users a user is following.
@@ -50,14 +51,16 @@ public class FollowService {
      * get the followees.
      *
      * @param request contains the data required to fulfill the request.
+     * @param logger
      * @return the followees.
      */
-    public UserListResponse getFollowers(FollowerRequest request) {
+    public UserListResponse getFollowers(FollowerRequest request, LambdaLogger logger) {
         if(request.getFolloweeAlias() == null) {
             throw new RuntimeException("[Bad Request] Request needs to have a followee alias");
         } else if(request.getLimit() <= 0) {
             throw new RuntimeException("[Bad Request] Request needs to have a positive limit");
         }
+        logger.log("made it here");
         return getFollowDAO().getFollowers(request);
     }
 

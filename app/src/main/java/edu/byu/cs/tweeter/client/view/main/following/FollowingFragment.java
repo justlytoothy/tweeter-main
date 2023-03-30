@@ -106,6 +106,7 @@ public class FollowingFragment extends Fragment implements PagedView<User> {
     @Override
     public void userReceived(User user) {
         getToast.cancel();
+        System.out.println(user.getName());
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);

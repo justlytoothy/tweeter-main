@@ -6,17 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
-import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.net.request.CountRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowerRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.net.response.CountResponse;
 import edu.byu.cs.tweeter.model.net.response.UserListResponse;
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
-import edu.byu.cs.tweeter.util.FakeData;
 
 public class FollowServiceTest {
 
@@ -54,7 +50,7 @@ public class FollowServiceTest {
 
 
         followServiceSpy = Mockito.spy(FollowService.class);
-        Mockito.when(followServiceSpy.getFollowingDAO()).thenReturn(mockFollowDAO);
+        Mockito.when(followServiceSpy.getFollowDAO()).thenReturn(mockFollowDAO);
     }
 
     /**

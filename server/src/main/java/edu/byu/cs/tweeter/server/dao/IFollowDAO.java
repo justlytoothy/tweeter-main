@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
+
 import edu.byu.cs.tweeter.model.net.request.CountRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowerRequest;

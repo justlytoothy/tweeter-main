@@ -20,6 +20,12 @@ import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.server.service.Security;
 import edu.byu.cs.tweeter.util.FakeData;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class UserDAO extends BaseDAO implements IUserDAO {
 
@@ -27,6 +33,13 @@ public class UserDAO extends BaseDAO implements IUserDAO {
         this.initializeDatabase();
         this.switchTable("user");
     }
+    private static DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+            .region(Region.US_EAST_1)
+            .build();
+
+    private static DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+            .dynamoDbClient(dynamoDbClient)
+            .build();
 
     @Override
     public AuthResponse login(LoginRequest request) {
@@ -35,14 +48,19 @@ public class UserDAO extends BaseDAO implements IUserDAO {
         } else if(request.getPassword() == null) {
             throw new RuntimeException("[Bad Request] Missing a password");
         }
-        //TODO can compare with .equals()
         String password = Security.encryptPassword(request.getPassword());
+        UserBean user = getUserUsername(request.getUsername());
+        if (Security.encryptPassword(user.getPassword()).equals(password)) {
+            AuthToken authToken = getDummyAuthToken();
+            return new AuthResponse(userToUser(user), authToken);
+        }
+        else {
+//            return new AuthResponse("Incorrect password");
+            //TODO return error response
+            AuthToken authToken = getDummyAuthToken();
+            return new AuthResponse(userToUser(user), authToken);
+        }
 
-
-        // TODO: Generates dummy data. Replace with a real implementation.
-        User user = getDummyUser();
-        AuthToken authToken = getDummyAuthToken();
-        return new AuthResponse(user, authToken);
     }
 
     @Override
@@ -51,7 +69,15 @@ public class UserDAO extends BaseDAO implements IUserDAO {
         // TODO: Generates dummy data. Replace with a real implementation.
         String encryptedPassword = Security.encryptPassword(request.getPassword());
         String link = storeImage(request.getImage(),request.getUsername());
-        User user = getDummyUser();
+        DynamoDbTable<UserBean> table = enhancedClient.table("user",TableSchema.fromBean(UserBean.class));
+        UserBean newUser = new UserBean();
+        newUser.setFirst_name(request.getFirstName());
+        newUser.setLast_name(request.getLastName());
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(encryptedPassword);
+        newUser.setImage(link);
+        table.putItem(newUser);
+        User user = userToUser(getUserUsername(request.getUsername()));
         AuthToken authToken = getDummyAuthToken();
         return new AuthResponse(user, authToken);
     }
@@ -63,7 +89,14 @@ public class UserDAO extends BaseDAO implements IUserDAO {
 
     @Override
     public GetUserResponse getUser(GetUserRequest request) {
-        return new GetUserResponse(getFakeData().findUserByAlias(request.getUsername()));
+        User user = userToUser(getUserUsername(request.getUsername()));
+        return new GetUserResponse(user);
+    }
+    public UserBean getUserUsername(String alias) {
+        DynamoDbTable<UserBean> table = enhancedClient.table("user", TableSchema.fromBean(UserBean.class));
+        Key key = Key.builder().partitionValue(alias).build();
+        UserBean user = table.getItem(key);
+        return user;
     }
 
 
@@ -109,6 +142,9 @@ public class UserDAO extends BaseDAO implements IUserDAO {
         PutObjectRequest request = new PutObjectRequest("tweeter-images-jschilling", alias, new ByteArrayInputStream(byteArray), data).withCannedAcl(CannedAccessControlList.PublicRead);
         s3.putObject(request);
         return "https://tweeter-images-jschilling.s3.us-east-1.amazonaws.com/" + alias;
+    }
+    private User userToUser(UserBean userBean) {
+        return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }
 
 

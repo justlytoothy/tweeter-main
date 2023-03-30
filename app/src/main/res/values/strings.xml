@@ -4,7 +4,7 @@
     <string name="logoutMenuTitle">Logout</string>
 
     <string name="homePageTitle">Home</string>
-    <string name="userImageContentDescription">The user\'s image</string>
+    <string name="userImageContentDescription">The userBean\'s image</string>
 
     <string name="usernameHint">\@username</string>
     <string name="password">password</string>

@@ -9,10 +9,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @DynamoDbBean
 public class Follows {
     private String follower_handle;
-    private String follower_name;
 
     private String followee_handle;
-    private String followee_name;
 
     @DynamoDbPartitionKey
     @DynamoDbSecondarySortKey(indexNames = FollowDAO.IndexName)
@@ -33,29 +31,15 @@ public class Follows {
         this.followee_handle = followee_handle;
     }
 
-    public String getFollowee_name() {
-        return followee_name;
-    }
 
-    public void setFollowee_name(String followee_name) {
-        this.followee_name = followee_name;
-    }
-    public String getFollower_name() {
-        return follower_name;
-    }
 
-    public void setFollower_name(String follower_name) {
-        this.follower_name = follower_name;
-    }
 
 
     @Override
     public String toString() {
         return "Follows{" +
                 "follower_handle='" + follower_handle + '\'' +
-                ", follower_name='" + follower_name + '\'' +
-                ", followee_handle='" + followee_handle + '\'' +
-                ", followee_name=" + followee_name +
+                ", followee_handle='" + followee_handle +
                 '}';
     }
 }
