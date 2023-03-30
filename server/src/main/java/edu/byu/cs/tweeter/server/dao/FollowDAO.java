@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.CountRequest;
@@ -99,7 +100,15 @@ public class FollowDAO extends BaseDAO implements IFollowDAO {
             QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
                     .queryConditional(QueryConditional.keyEqualTo(key));
             QueryEnhancedRequest request = requestBuilder.build();
-            return new CountResponse((int) index.query(request).stream().count());
+            SdkIterable<Page<Follows>> sdkIterable = index.query(request);
+            PageIterable<Follows> pages = PageIterable.create(sdkIterable);
+            AtomicInteger count = new AtomicInteger();
+            pages.stream()
+                    .limit(1)
+                    .forEach((Page<Follows> page) -> {
+                        page.items().forEach(visit -> count.getAndIncrement());
+                    });
+            return new CountResponse(count.get());
         }
         catch (Exception e) {
             return new CountResponse(e.getMessage());
@@ -114,7 +123,15 @@ public class FollowDAO extends BaseDAO implements IFollowDAO {
             QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
                     .queryConditional(QueryConditional.keyEqualTo(key));
             QueryEnhancedRequest request = requestBuilder.build();
-            return new CountResponse((int) table.query(request).stream().count());
+            SdkIterable<Page<Follows>> sdkIterable = table.query(request);
+            PageIterable<Follows> pages = PageIterable.create(sdkIterable);
+            AtomicInteger count = new AtomicInteger();
+            pages.stream()
+                    .limit(1)
+                    .forEach((Page<Follows> page) -> {
+                        page.items().forEach(visit -> count.getAndIncrement());
+                    });
+            return new CountResponse(count.get());
         }
         catch (Exception e) {
             return new CountResponse(e.getMessage());
