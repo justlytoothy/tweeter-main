@@ -111,6 +111,7 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
         s3.putObject(request);
         return "https://tweeter-images-jschilling.s3.us-east-1.amazonaws.com/" + alias;
     }
+
     private User userToUser(UserBean userBean) {
         return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }

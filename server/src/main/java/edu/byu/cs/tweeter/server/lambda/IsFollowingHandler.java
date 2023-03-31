@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import edu.byu.cs.tweeter.model.net.request.IsFollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.IsFollowingResponse;
+import edu.byu.cs.tweeter.server.service.DynamoFactory;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
 /**
@@ -23,7 +24,7 @@ public class IsFollowingHandler implements RequestHandler<IsFollowingRequest, Is
      */
     @Override
     public IsFollowingResponse handleRequest(IsFollowingRequest request, Context context) {
-        FollowService service = new FollowService();
+        FollowService service = new FollowService(new DynamoFactory());
         return service.isFollowing(request);
     }
 }

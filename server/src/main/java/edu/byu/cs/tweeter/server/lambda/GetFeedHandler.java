@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import edu.byu.cs.tweeter.model.net.request.StatusesRequest;
 import edu.byu.cs.tweeter.model.net.response.StatusesResponse;
+import edu.byu.cs.tweeter.server.service.DynamoFactory;
 import edu.byu.cs.tweeter.server.service.StatusService;
 
 /**
@@ -23,7 +24,7 @@ public class GetFeedHandler implements RequestHandler<StatusesRequest, StatusesR
      */
     @Override
     public StatusesResponse handleRequest(StatusesRequest request, Context context) {
-        StatusService service = new StatusService();
+        StatusService service = new StatusService(new DynamoFactory());
         return service.getFeed(request);
     }
 }

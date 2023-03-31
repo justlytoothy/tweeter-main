@@ -12,11 +12,11 @@ import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.server.dao.IUserDAO;
 
 public class UserService {
-    private final IDAOFactory factory;
-    public UserService() {
-        factory = new DynamoFactory();
-    }
 
+    private final IDAOFactory factory;
+    public UserService(IDAOFactory factory) {
+        this.factory = factory;
+    }
     IUserDAO getUserDAO() {
         return factory.getUserDAO();
     }

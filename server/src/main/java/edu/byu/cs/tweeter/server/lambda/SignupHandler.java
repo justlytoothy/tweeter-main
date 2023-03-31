@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import edu.byu.cs.tweeter.model.net.request.SignupRequest;
 import edu.byu.cs.tweeter.model.net.response.AuthResponse;
+import edu.byu.cs.tweeter.server.service.DynamoFactory;
 import edu.byu.cs.tweeter.server.service.UserService;
 
 /**
@@ -14,7 +15,7 @@ import edu.byu.cs.tweeter.server.service.UserService;
 public class SignupHandler implements RequestHandler<SignupRequest, AuthResponse> {
     @Override
     public AuthResponse handleRequest(SignupRequest signupRequest, Context context) {
-        UserService userService = new UserService();
+        UserService userService = new UserService(new DynamoFactory());
         return userService.signup(signupRequest);
     }
 }

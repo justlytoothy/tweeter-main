@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import edu.byu.cs.tweeter.model.net.request.CountRequest;
 import edu.byu.cs.tweeter.model.net.response.CountResponse;
+import edu.byu.cs.tweeter.server.service.DynamoFactory;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
 /**
@@ -23,7 +24,7 @@ public class GetFollowingCountHandler implements RequestHandler<CountRequest, Co
      */
     @Override
     public CountResponse handleRequest(CountRequest request, Context context) {
-        FollowService service = new FollowService();
+        FollowService service = new FollowService(new DynamoFactory());
         return service.getFollowingCount(request);
     }
 }

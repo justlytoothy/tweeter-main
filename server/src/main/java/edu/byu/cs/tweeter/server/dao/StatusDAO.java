@@ -14,7 +14,6 @@ import edu.byu.cs.tweeter.model.net.request.SendStatusRequest;
 import edu.byu.cs.tweeter.model.net.request.StatusesRequest;
 import edu.byu.cs.tweeter.model.net.response.SendStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.StatusesResponse;
-import edu.byu.cs.tweeter.server.dao.beans.FeedBean;
 import edu.byu.cs.tweeter.server.dao.beans.FollowBean;
 import edu.byu.cs.tweeter.server.dao.beans.StoryBean;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
@@ -43,19 +42,16 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
                 storyBean.setTimestamp(request.getStatus().getTimestamp());
                 storyBean.setUser(new Gson().toJson(request.getStatus().getUser()));
                 table.putItem(storyBean);
-                FeedBean feedBean = new FeedBean();
+                StoryBean feedBean = new StoryBean();
                 feedBean.setPost(request.getStatus().getPost());
                 feedBean.setMentions(request.getStatus().getMentions());
                 feedBean.setUrls(request.getStatus().getUrls());
                 feedBean.setTimestamp(request.getStatus().getTimestamp());
                 feedBean.setUser(new Gson().toJson(request.getStatus().getUser()));
-                DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
-                for (String s : request.getStatus().getMentions()) {
-                    feedBean.setAlias(s);
-                    feedTable.putItem(feedBean);
-                }
+                DynamoDbTable<StoryBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
                 boolean morePages = true;
                 String lastUser = null;
+                //TODO call from service, all of the DAOs shouldnt depend on each other
                 while (morePages) {
                     DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),100,lastUser);
                     for (FollowBean f : page.getValues()) {
@@ -104,8 +100,8 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
         try {
             if (UserDAO.checkAuthToken(request.getAuthToken())) {
                 List<Status> feed = new ArrayList<>(request.getLimit());
-                DataPage<FeedBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
-                for (FeedBean b : beanDataPage.getValues()) {
+                DataPage<StoryBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
+                for (StoryBean b : beanDataPage.getValues()) {
                     feed.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
                 }
                 return new StatusesResponse(feed, beanDataPage.isHasMorePages());
@@ -119,8 +115,8 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
         }
     }
 
-    public DataPage<FeedBean> getPageOfFeed(String targetUserAlias, int pageSize, Status lastStatus) {
-        DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
+    public DataPage<StoryBean> getPageOfFeed(String targetUserAlias, int pageSize, Status lastStatus) {
+        table = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
         Key key = Key.builder().partitionValue(targetUserAlias).build();
         QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.keyEqualTo(key))
@@ -132,13 +128,13 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
             requestBuilder.exclusiveStartKey(startKey);
         }
         QueryEnhancedRequest request = requestBuilder.build();
-        DataPage<FeedBean> result = new DataPage<FeedBean>();
+        DataPage<StoryBean> result = new DataPage<StoryBean>();
 
-        SdkIterable<Page<FeedBean>> sdkIterable = feedTable.query(request);
-        PageIterable<FeedBean> pages = PageIterable.create(sdkIterable);
+        SdkIterable<Page<StoryBean>> sdkIterable = table.query(request);
+        PageIterable<StoryBean> pages = PageIterable.create(sdkIterable);
         pages.stream()
                 .limit(1)
-                .forEach((Page<FeedBean> page) -> {
+                .forEach((Page<StoryBean> page) -> {
                     result.setHasMorePages(page.lastEvaluatedKey() != null);
                     page.items().forEach(visit -> result.getValues().add(visit));
                 });

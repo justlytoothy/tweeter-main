@@ -19,9 +19,11 @@ import edu.byu.cs.tweeter.server.dao.IFollowDAO;
  */
 public class FollowService {
     private final IDAOFactory factory;
-    public FollowService() {
-        factory = new DynamoFactory();
+
+    public FollowService(IDAOFactory factory) {
+        this.factory = factory;
     }
+
 
     IFollowDAO getFollowDAO() {
         return factory.getFollowDAO();
