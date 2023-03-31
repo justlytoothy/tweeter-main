@@ -1,7 +1,7 @@
 package edu.byu.cs.tweeter.server.dao;
 
 
-import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,38 +62,54 @@ public class FollowDAO extends BaseDAO<FollowBean> implements IFollowDAO {
 
     @Override
     public UserListResponse getFollowers(FollowerRequest request) {
-        assert request.getLimit() > 0;
-        assert request.getFolloweeAlias() != null;
-        List<User> responseFollowers = new ArrayList<>(request.getLimit());
-        boolean hasMorePages = false;
-        if(request.getLimit() > 0) {
-            DataPage<FollowBean> followers = getPageOfFollowers(request.getFolloweeAlias(), request.getLimit(), request.getLastFolloweeAlias());
-            hasMorePages = followers.isHasMorePages();
-            for (FollowBean f : followers.getValues()) {
-                UserBean user = new UserDAO().getUserUsername(f.getFollower_handle());
-                responseFollowers.add(new User(user.getFirst_name(), user.getLast_name(), user.getUsername(), user.getImage()));
+        try {
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                assert request.getLimit() > 0;
+                assert request.getFolloweeAlias() != null;
+                List<User> responseFollowers = new ArrayList<>(request.getLimit());
+                boolean hasMorePages = false;
+                if(request.getLimit() > 0) {
+                    DataPage<FollowBean> followers = getPageOfFollowers(request.getFolloweeAlias(), request.getLimit(), request.getLastFolloweeAlias());
+                    hasMorePages = followers.isHasMorePages();
+                    for (FollowBean f : followers.getValues()) {
+                        UserBean user = new UserDAO().getUserUsername(f.getFollower_handle());
+                        responseFollowers.add(new User(user.getFirst_name(), user.getLast_name(), user.getUsername(), user.getImage()));
+                    }
+                }
+
+                return new UserListResponse(responseFollowers, hasMorePages);
+            }
+            else {
+                return new UserListResponse("Invalid Auth Token");
             }
         }
-
-        return new UserListResponse(responseFollowers, hasMorePages);
+        catch(Exception e) {
+            return new UserListResponse(e.getMessage());
+        }
     }
 
 
     @Override
     public CountResponse getFollowerCount(CountRequest countRequest) {
         try {
-            DynamoDbIndex<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class)).index(IndexName);
-            Key key = Key.builder().partitionValue(countRequest.getTargetUser()).build();
-            QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
-                    .queryConditional(QueryConditional.keyEqualTo(key));
-            QueryEnhancedRequest request = requestBuilder.build();
-            SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
-            PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
-            AtomicInteger count = new AtomicInteger();
-            pages.stream().forEach((Page<FollowBean> page) -> {
-                        page.items().forEach(visit -> count.getAndIncrement());
-                    });
-            return new CountResponse(count.get());
+            if (UserDAO.checkAuthToken(countRequest.getAuthToken())) {
+                DynamoDbIndex<FollowBean> index = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class)).index(IndexName);
+                Key key = Key.builder().partitionValue(countRequest.getTargetUser()).build();
+                QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
+                        .queryConditional(QueryConditional.keyEqualTo(key));
+                QueryEnhancedRequest request = requestBuilder.build();
+                SdkIterable<Page<FollowBean>> sdkIterable = index.query(request);
+                PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
+                AtomicInteger count = new AtomicInteger();
+                pages.stream().forEach((Page<FollowBean> page) -> {
+                    page.items().forEach(visit -> count.getAndIncrement());
+                });
+                return new CountResponse(count.get());
+            }
+            else {
+                return new CountResponse("Invalid Auth Token");
+            }
+
         }
         catch (Exception e) {
             return new CountResponse(e.getMessage());
@@ -103,18 +119,24 @@ public class FollowDAO extends BaseDAO<FollowBean> implements IFollowDAO {
     @Override
     public CountResponse getFollowingCount(CountRequest countRequest) {
         try {
-            DynamoDbTable<FollowBean> table = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
-            Key key = Key.builder().partitionValue(countRequest.getTargetUser()).build();
-            QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
-                    .queryConditional(QueryConditional.keyEqualTo(key));
-            QueryEnhancedRequest request = requestBuilder.build();
-            SdkIterable<Page<FollowBean>> sdkIterable = table.query(request);
-            PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
-            AtomicInteger count = new AtomicInteger();
-            pages.stream().forEach((Page<FollowBean> page) -> {
-                        page.items().forEach(visit -> count.getAndIncrement());
-                    });
-            return new CountResponse(count.get());
+            if (UserDAO.checkAuthToken(countRequest.getAuthToken())) {
+                table = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
+                Key key = Key.builder().partitionValue(countRequest.getTargetUser()).build();
+                QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
+                        .queryConditional(QueryConditional.keyEqualTo(key));
+                QueryEnhancedRequest request = requestBuilder.build();
+                SdkIterable<Page<FollowBean>> sdkIterable = table.query(request);
+                PageIterable<FollowBean> pages = PageIterable.create(sdkIterable);
+                AtomicInteger count = new AtomicInteger();
+                pages.stream().forEach((Page<FollowBean> page) -> {
+                    page.items().forEach(visit -> count.getAndIncrement());
+                });
+                return new CountResponse(count.get());
+            }
+            else {
+                return new CountResponse("Invalid Auth Token");
+            }
+
         }
         catch (Exception e) {
             return new CountResponse(e.getMessage());
@@ -125,11 +147,17 @@ public class FollowDAO extends BaseDAO<FollowBean> implements IFollowDAO {
     @Override
     public FollowResponse follow(FollowRequest request) {
         try {
-            FollowBean newFollow = new FollowBean();
-            newFollow.setFollowee_handle(request.getTargetUserAlias());
-            newFollow.setFollower_handle(request.getCurrentUser());
-            table.putItem(newFollow);
-            return new FollowResponse();
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                table = enhancedClient.table(TableName, TableSchema.fromBean(FollowBean.class));
+                FollowBean newFollow = new FollowBean();
+                newFollow.setFollowee_handle(request.getTargetUserAlias());
+                newFollow.setFollower_handle(request.getCurrentUser());
+                table.putItem(newFollow);
+                return new FollowResponse();
+            }
+            else {
+                return new FollowResponse("Invalid Auth Token");
+            }
         }
         catch (Exception e) {
             return new FollowResponse(e.getMessage());
@@ -138,21 +166,43 @@ public class FollowDAO extends BaseDAO<FollowBean> implements IFollowDAO {
 
     @Override
     public FollowResponse unfollow(FollowRequest request) {
-        DynamoDbTable<FollowBean> table = enhancedClient.table(TableName,TableSchema.fromBean(FollowBean.class));
-        Key key = Key.builder().partitionValue(request.getCurrentUser()).sortValue(request.getTargetUserAlias()).build();
-        table.deleteItem(key);
-        return new FollowResponse();
+        try {
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                table = enhancedClient.table(TableName,TableSchema.fromBean(FollowBean.class));
+                Key key = Key.builder().partitionValue(request.getCurrentUser()).sortValue(request.getTargetUserAlias()).build();
+                table.deleteItem(key);
+                return new FollowResponse();
+            }
+            else {
+                return new FollowResponse("Invalid Auth Token");
+            }
+        }
+        catch(Exception e) {
+            return new FollowResponse(e.getMessage());
+        }
+
+
     }
 
     @Override
     public IsFollowingResponse isFollowing(IsFollowingRequest request) {
-        DynamoDbTable<FollowBean> table = enhancedClient.table(TableName,TableSchema.fromBean(FollowBean.class));
-        Key key = Key.builder().partitionValue(request.getCurrentUser()).sortValue(request.getTargetUserAlias()).build();
-        if (table.getItem(key) != null) {
-            return new IsFollowingResponse(true);
+        try {
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                DynamoDbTable<FollowBean> table = enhancedClient.table(TableName,TableSchema.fromBean(FollowBean.class));
+                Key key = Key.builder().partitionValue(request.getCurrentUser()).sortValue(request.getTargetUserAlias()).build();
+                if (table.getItem(key) != null) {
+                    return new IsFollowingResponse(true);
+                }
+                else {
+                    return new IsFollowingResponse(false);
+                }
+            }
+            else {
+                return new IsFollowingResponse("Invalid Auth Token");
+            }
         }
-        else {
-            return new IsFollowingResponse(false);
+        catch(Exception e) {
+            return new IsFollowingResponse(e.getMessage());
         }
     }
 

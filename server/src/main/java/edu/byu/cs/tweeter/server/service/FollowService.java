@@ -51,16 +51,14 @@ public class FollowService {
      * get the followees.
      *
      * @param request contains the data required to fulfill the request.
-     * @param logger
      * @return the followees.
      */
-    public UserListResponse getFollowers(FollowerRequest request, LambdaLogger logger) {
+    public UserListResponse getFollowers(FollowerRequest request) {
         if(request.getFolloweeAlias() == null) {
             throw new RuntimeException("[Bad Request] Request needs to have a followee alias");
         } else if(request.getLimit() <= 0) {
             throw new RuntimeException("[Bad Request] Request needs to have a positive limit");
         }
-        logger.log("made it here");
         return getFollowDAO().getFollowers(request);
     }
 
@@ -76,7 +74,6 @@ public class FollowService {
     }
     public CountResponse getFollowingCount(CountRequest request) {
         if (request.getAuthToken() == null) {
-            //not sure if need to check this TODO
             throw new RuntimeException("[Bad Request] Request needs to have an auth token");
         }
         else if (request.getTargetUser() == null) {
@@ -89,7 +86,6 @@ public class FollowService {
 
     public FollowResponse follow(FollowRequest request, boolean follow) {
         if (request.getAuthToken() == null) {
-            //not sure if need to check this TODO
             throw new RuntimeException("[Bad Request] Request needs to have an auth token");
         }
         else if (request.getTargetUserAlias() == null) {

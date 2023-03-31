@@ -33,40 +33,44 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
     @Override
     public SendStatusResponse post(SendStatusRequest request) {
         try {
-            table = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
-            StoryBean storyBean = new StoryBean();
-            storyBean.setPost(request.getStatus().getPost());
-            storyBean.setAlias(request.getStatus().getUser().getAlias());
-            storyBean.setMentions(request.getStatus().getMentions());
-            storyBean.setUrls(request.getStatus().getUrls());
-            storyBean.setTimestamp(request.getStatus().getTimestamp());
-            storyBean.setUser(new Gson().toJson(request.getStatus().getUser()));
-            table.putItem(storyBean);
-            FeedBean feedBean = new FeedBean();
-            feedBean.setPost(request.getStatus().getPost());
-            feedBean.setMentions(request.getStatus().getMentions());
-            feedBean.setUrls(request.getStatus().getUrls());
-            feedBean.setTimestamp(request.getStatus().getTimestamp());
-            feedBean.setUser(new Gson().toJson(request.getStatus().getUser()));
-            DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
-            feedBean.setAlias(request.getStatus().getUser().getAlias());
-            feedTable.putItem(feedBean);
-            for (String s : request.getStatus().getMentions()) {
-                feedBean.setAlias(s);
-                feedTable.putItem(feedBean);
-            }
-            boolean morePages = true;
-            String lastUser = null;
-            while (morePages) {
-                DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),100,lastUser);
-                for (FollowBean f : page.getValues()) {
-                    feedBean.setAlias(f.getFollower_handle());
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                table = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
+                StoryBean storyBean = new StoryBean();
+                storyBean.setPost(request.getStatus().getPost());
+                storyBean.setAlias(request.getStatus().getUser().getAlias());
+                storyBean.setMentions(request.getStatus().getMentions());
+                storyBean.setUrls(request.getStatus().getUrls());
+                storyBean.setTimestamp(request.getStatus().getTimestamp());
+                storyBean.setUser(new Gson().toJson(request.getStatus().getUser()));
+                table.putItem(storyBean);
+                FeedBean feedBean = new FeedBean();
+                feedBean.setPost(request.getStatus().getPost());
+                feedBean.setMentions(request.getStatus().getMentions());
+                feedBean.setUrls(request.getStatus().getUrls());
+                feedBean.setTimestamp(request.getStatus().getTimestamp());
+                feedBean.setUser(new Gson().toJson(request.getStatus().getUser()));
+                DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
+                for (String s : request.getStatus().getMentions()) {
+                    feedBean.setAlias(s);
                     feedTable.putItem(feedBean);
-                    lastUser = f.getFollower_handle();
                 }
-                morePages = page.isHasMorePages();
+                boolean morePages = true;
+                String lastUser = null;
+                while (morePages) {
+                    DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),100,lastUser);
+                    for (FollowBean f : page.getValues()) {
+                        feedBean.setAlias(f.getFollower_handle());
+                        feedTable.putItem(feedBean);
+                        lastUser = f.getFollower_handle();
+                    }
+                    morePages = page.isHasMorePages();
+                }
+                return new SendStatusResponse();
             }
-            return new SendStatusResponse();
+            else {
+                return new SendStatusResponse("Invalid Auth Token");
+            }
+
         }
         catch (Exception e) {
             return new SendStatusResponse(e.getMessage());
@@ -76,12 +80,18 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
     @Override
     public StatusesResponse getStory(StatusesRequest request) {
         try {
-            List<Status> story = new ArrayList<>(request.getLimit());
-            DataPage<StoryBean> beanDataPage = getPageOfStory(request.getUserAlias(), request.getLimit(), request.getLastStatus());
-            for (StoryBean b : beanDataPage.getValues()) {
-                story.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                List<Status> story = new ArrayList<>(request.getLimit());
+                DataPage<StoryBean> beanDataPage = getPageOfStory(request.getUserAlias(), request.getLimit(), request.getLastStatus());
+                for (StoryBean b : beanDataPage.getValues()) {
+                    story.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+                }
+                return new StatusesResponse(story, beanDataPage.isHasMorePages());
             }
-            return new StatusesResponse(story, beanDataPage.isHasMorePages());
+            else {
+                return new StatusesResponse("Invalid Auth Token");
+            }
+
         }
         catch (Exception e) {
             return new StatusesResponse(e.getMessage());
@@ -92,12 +102,17 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
     @Override
     public StatusesResponse getFeed(StatusesRequest request) {
         try {
-            List<Status> feed = new ArrayList<>(request.getLimit());
-            DataPage<FeedBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
-            for (FeedBean b : beanDataPage.getValues()) {
-                feed.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+            if (UserDAO.checkAuthToken(request.getAuthToken())) {
+                List<Status> feed = new ArrayList<>(request.getLimit());
+                DataPage<FeedBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
+                for (FeedBean b : beanDataPage.getValues()) {
+                    feed.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+                }
+                return new StatusesResponse(feed, beanDataPage.isHasMorePages());
             }
-            return new StatusesResponse(feed, beanDataPage.isHasMorePages());
+            else {
+                return new StatusesResponse("Invalid Auth Token");
+            }
         }
         catch (Exception e) {
             return new StatusesResponse(e.getMessage());

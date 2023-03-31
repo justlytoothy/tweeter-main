@@ -1,5 +1,6 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -22,8 +23,6 @@ import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.server.dao.beans.AuthtokenBean;
 import edu.byu.cs.tweeter.server.dao.beans.UserBean;
 import edu.byu.cs.tweeter.server.service.Security;
-import edu.byu.cs.tweeter.util.FakeData;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
@@ -32,14 +31,9 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        if(request.getUsername() == null){
-            throw new RuntimeException("[Bad Request] Missing a username");
-        } else if(request.getPassword() == null) {
-            throw new RuntimeException("[Bad Request] Missing a password");
-        }
         String password = Security.encryptPassword(request.getPassword());
         UserBean user = getUserUsername(request.getUsername());
-        if (Security.encryptPassword(user.getPassword()).equals(password)) {
+        if (user.getPassword().equals(password)) {
             AuthToken authToken = authorize();
             return new AuthResponse(userToUser(user), authToken);
         }
@@ -98,7 +92,7 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
 
     }
     public UserBean getUserUsername(String alias) {
-        DynamoDbTable<UserBean> table = enhancedClient.table("user", TableSchema.fromBean(UserBean.class));
+        table = enhancedClient.table("user", TableSchema.fromBean(UserBean.class));
         Key key = Key.builder().partitionValue(alias).build();
         UserBean user = table.getItem(key);
         return user;
@@ -120,10 +114,9 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
     private User userToUser(UserBean userBean) {
         return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }
-
-    private static boolean checkAuthToken(AuthToken authToken) {
-        long currTime = System.currentTimeMillis();
-        return currTime >= (Long.getLong(authToken.getDatetime())-(60*60*3*1000));
+    public static boolean checkAuthToken(AuthToken authToken) {
+        Long currTime = System.currentTimeMillis();
+        return currTime >= (Long.parseLong(authToken.getDatetime())-(60*60*3*1000));
     }
     private AuthToken beanToToken(AuthtokenBean bean) {
         AuthToken token = new AuthToken();

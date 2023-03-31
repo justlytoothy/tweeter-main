@@ -19,6 +19,7 @@ public class AuthHandler extends BackgroundTaskHandler<AuthObserver>{
         AuthToken authToken = (AuthToken) data.getSerializable(AuthenticateTask.AUTH_TOKEN_KEY);
         Cache.getInstance().setCurrUser(user);
         Cache.getInstance().setCurrUserAuthToken(authToken);
+        System.out.println(Cache.getInstance().getCurrUserAuthToken().getToken());
         observer.handleSuccess(user,authToken,"Hello " + Cache.getInstance().getCurrUser().getName());
     }
 }

@@ -26,13 +26,7 @@ public class GetFollowersHandler implements RequestHandler<FollowerRequest, User
     @Override
     public UserListResponse handleRequest(FollowerRequest request, Context context) {
         FollowService service = new FollowService();
-        LambdaLogger logger = context.getLogger();
-        UserListResponse userListResponse = service.getFollowers(request,logger);
-
-        for (User u : userListResponse.getItems()) {
-            logger.log(u.getAlias());
-        }
-
+        UserListResponse userListResponse = service.getFollowers(request);
         return userListResponse;
     }
 }

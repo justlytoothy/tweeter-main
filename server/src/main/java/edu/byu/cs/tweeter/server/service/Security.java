@@ -7,8 +7,9 @@ import java.util.Base64;
 
 public class Security {
 
+    private static final String salt = "0P/KX3XASFLY7krxFmEH0g==";
+
     public static String encryptPassword(String password) {
-        String salt = getSalt();
         return getSecurePassword(password,salt);
     }
 
@@ -26,18 +27,6 @@ public class Security {
             e.printStackTrace();
         }
         return "FAILED TO HASH PASSWORD";
-    }
-
-    private static String getSalt() {
-        try {
-            SecureRandom sr = SecureRandom.getInstance("SHA1PRNG", "SUN");
-            byte[] salt = new byte[16];
-            sr.nextBytes(salt);
-            return Base64.getEncoder().encodeToString(salt);
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            e.printStackTrace();
-        }
-        return "FAILED TO GET SALT";
     }
 
 }
