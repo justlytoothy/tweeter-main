@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
+import java.util.UUID;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -18,6 +19,7 @@ import edu.byu.cs.tweeter.model.net.request.SignupRequest;
 import edu.byu.cs.tweeter.model.net.response.AuthResponse;
 import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
+import edu.byu.cs.tweeter.server.dao.beans.AuthtokenBean;
 import edu.byu.cs.tweeter.server.dao.beans.UserBean;
 import edu.byu.cs.tweeter.server.service.Security;
 import edu.byu.cs.tweeter.util.FakeData;
@@ -38,14 +40,11 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
         String password = Security.encryptPassword(request.getPassword());
         UserBean user = getUserUsername(request.getUsername());
         if (Security.encryptPassword(user.getPassword()).equals(password)) {
-            AuthToken authToken = getDummyAuthToken();
+            AuthToken authToken = authorize();
             return new AuthResponse(userToUser(user), authToken);
         }
         else {
-//            return new AuthResponse("Incorrect password");
-            //TODO return error response
-            AuthToken authToken = getDummyAuthToken();
-            return new AuthResponse(userToUser(user), authToken);
+            return new AuthResponse("Incorrect password");
         }
 
     }
@@ -63,21 +62,35 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
         newUser.setImage(link);
         table.putItem(newUser);
         User user = userToUser(getUserUsername(request.getUsername()));
-        AuthToken authToken = getDummyAuthToken();
+        AuthToken authToken = authorize();
         return new AuthResponse(user, authToken);
     }
 
     @Override
     public LogoutResponse logout(LogoutRequest request) {
-        //TODO delete auth token
-        return new LogoutResponse();
+        try {
+            AuthtokenBean bean = new AuthtokenBean();
+            bean.setTimestamp(Long.getLong(request.getAuthToken().getDatetime()));
+            bean.setToken(request.getAuthToken().getToken());
+            enhancedClient.table("authtoken",TableSchema.fromBean(AuthtokenBean.class)).deleteItem(bean);
+            return new LogoutResponse();
+        }
+        catch(Exception e) {
+            return new LogoutResponse(e.getMessage());
+        }
+
     }
 
     @Override
     public GetUserResponse getUser(GetUserRequest request) {
         try {
-            User user = userToUser(getUserUsername(request.getUsername()));
-            return new GetUserResponse(user);
+            if (checkAuthToken(request.getAuthToken())) {
+                User user = userToUser(getUserUsername(request.getUsername()));
+                return new GetUserResponse(user);
+            }
+            else {
+                return new GetUserResponse("Invalid Auth Token");
+            }
         }
         catch (Exception e) {
             return new GetUserResponse(e.getMessage());
@@ -108,25 +121,23 @@ public class UserDAO extends BaseDAO<UserBean> implements IUserDAO {
         return new User(userBean.getFirst_name(), userBean.getLast_name(), userBean.getUsername(), userBean.getImage());
     }
 
-    /**
-     * Returns the dummy auth token to be returned by the login operation.
-     * This is written as a separate method to allow mocking of the dummy auth token.
-     *
-     * @return a dummy auth token.
-     */
-    AuthToken getDummyAuthToken() {
-        return getFakeData().getAuthToken();
+    private static boolean checkAuthToken(AuthToken authToken) {
+        long currTime = System.currentTimeMillis();
+        return currTime >= (Long.getLong(authToken.getDatetime())-(60*60*3*1000));
     }
-
-    /**
-     * Returns the {@link FakeData} object used to generate dummy users and auth tokens.
-     * This is written as a separate method to allow mocking of the {@link FakeData}.
-     *
-     * @return a {@link FakeData} instance.
-     */
-    FakeData getFakeData() {
-        return FakeData.getInstance();
+    private AuthToken beanToToken(AuthtokenBean bean) {
+        AuthToken token = new AuthToken();
+        token.setToken(bean.getToken());
+        token.setDatetime(String.valueOf(bean.getTimestamp()));
+        return token;
     }
-
+    private AuthToken authorize() {
+        AuthtokenBean bean = new AuthtokenBean();
+        bean.setToken(UUID.randomUUID().toString());
+        bean.setTimestamp(System.currentTimeMillis());
+        enhancedClient.table("authtoken",TableSchema.fromBean(AuthtokenBean.class)).putItem(bean);
+        AuthToken authToken = beanToToken(bean);
+        return authToken;
+    }
 
 }

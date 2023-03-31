@@ -1,6 +1,8 @@
 package edu.byu.cs.tweeter.server.dao;
 
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,9 +15,8 @@ import edu.byu.cs.tweeter.model.net.request.StatusesRequest;
 import edu.byu.cs.tweeter.model.net.response.SendStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.StatusesResponse;
 import edu.byu.cs.tweeter.server.dao.beans.FeedBean;
+import edu.byu.cs.tweeter.server.dao.beans.FollowBean;
 import edu.byu.cs.tweeter.server.dao.beans.StoryBean;
-import edu.byu.cs.tweeter.util.FakeData;
-import edu.byu.cs.tweeter.util.Pair;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -26,46 +27,85 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class StatusDAO extends BaseDAO<FeedBean> implements IStatusDAO {
+public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
 
 
     @Override
     public SendStatusResponse post(SendStatusRequest request) {
-        return new SendStatusResponse();
+        try {
+            table = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
+            StoryBean storyBean = new StoryBean();
+            storyBean.setPost(request.getStatus().getPost());
+            storyBean.setAlias(request.getStatus().getUser().getAlias());
+            storyBean.setMentions(request.getStatus().getMentions());
+            storyBean.setUrls(request.getStatus().getUrls());
+            storyBean.setTimestamp(request.getStatus().getTimestamp());
+            storyBean.setUser(new Gson().toJson(request.getStatus().getUser()));
+            table.putItem(storyBean);
+            FeedBean feedBean = new FeedBean();
+            feedBean.setPost(request.getStatus().getPost());
+            feedBean.setMentions(request.getStatus().getMentions());
+            feedBean.setUrls(request.getStatus().getUrls());
+            feedBean.setTimestamp(request.getStatus().getTimestamp());
+            feedBean.setUser(new Gson().toJson(request.getStatus().getUser()));
+            DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
+            feedBean.setAlias(request.getStatus().getUser().getAlias());
+            feedTable.putItem(feedBean);
+            for (String s : request.getStatus().getMentions()) {
+                feedBean.setAlias(s);
+                feedTable.putItem(feedBean);
+            }
+            boolean morePages = true;
+            String lastUser = null;
+            while (morePages) {
+                DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),100,lastUser);
+                for (FollowBean f : page.getValues()) {
+                    feedBean.setAlias(f.getFollower_handle());
+                    feedTable.putItem(feedBean);
+                    lastUser = f.getFollower_handle();
+                }
+                morePages = page.isHasMorePages();
+            }
+            return new SendStatusResponse();
+        }
+        catch (Exception e) {
+            return new SendStatusResponse(e.getMessage());
+        }
     }
 
     @Override
     public StatusesResponse getStory(StatusesRequest request) {
-        Pair<List<Status>,Boolean> res = getFakeData().getPageOfStatus(request.getLastStatus(), request.getLimit());
-        return new StatusesResponse(res.getFirst(), res.getSecond());
+        try {
+            List<Status> story = new ArrayList<>(request.getLimit());
+            DataPage<StoryBean> beanDataPage = getPageOfStory(request.getUserAlias(), request.getLimit(), request.getLastStatus());
+            for (StoryBean b : beanDataPage.getValues()) {
+                story.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+            }
+            return new StatusesResponse(story, beanDataPage.isHasMorePages());
+        }
+        catch (Exception e) {
+            return new StatusesResponse(e.getMessage());
+        }
 
     }
 
     @Override
     public StatusesResponse getFeed(StatusesRequest request) {
-        List<Status> feed = new ArrayList<>(request.getLimit());
-        DataPage<FeedBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
-        for (FeedBean b : beanDataPage.getValues()) {
-            feed.add(new Status(b.getPost(),b.getUser(),b.getTimestamp(),b.getUrls(),b.getMentions()));
+        try {
+            List<Status> feed = new ArrayList<>(request.getLimit());
+            DataPage<FeedBean> beanDataPage = getPageOfFeed(request.getUserAlias(), request.getLimit(), request.getLastStatus());
+            for (FeedBean b : beanDataPage.getValues()) {
+                feed.add(new Status(b.getPost(),new Gson().fromJson(b.getUser(), User.class),b.getTimestamp(),b.getUrls(),b.getMentions()));
+            }
+            return new StatusesResponse(feed, beanDataPage.isHasMorePages());
         }
-        return new StatusesResponse(feed, beanDataPage.isHasMorePages());
-    }
-
-    /**
-     * Returns the {@link FakeData} object used to generate dummy users and auth tokens.
-     * This is written as a separate method to allow mocking of the {@link FakeData}.
-     *
-     * @return a {@link FakeData} instance.
-     */
-    FakeData getFakeData() {
-        return FakeData.getInstance();
-    }
-    private static boolean isNonEmptyString(String value) {
-        return (value != null && value.length() > 0);
+        catch (Exception e) {
+            return new StatusesResponse(e.getMessage());
+        }
     }
 
     public DataPage<FeedBean> getPageOfFeed(String targetUserAlias, int pageSize, Status lastStatus) {
-        table = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
+        DynamoDbTable<FeedBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(FeedBean.class));
         Key key = Key.builder().partitionValue(targetUserAlias).build();
         QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.keyEqualTo(key))
@@ -79,7 +119,7 @@ public class StatusDAO extends BaseDAO<FeedBean> implements IStatusDAO {
         QueryEnhancedRequest request = requestBuilder.build();
         DataPage<FeedBean> result = new DataPage<FeedBean>();
 
-        SdkIterable<Page<FeedBean>> sdkIterable = table.query(request);
+        SdkIterable<Page<FeedBean>> sdkIterable = feedTable.query(request);
         PageIterable<FeedBean> pages = PageIterable.create(sdkIterable);
         pages.stream()
                 .limit(1)
@@ -91,7 +131,7 @@ public class StatusDAO extends BaseDAO<FeedBean> implements IStatusDAO {
 
     }
     public DataPage<StoryBean> getPageOfStory(String targetUserAlias, int pageSize, Status lastStatus) {
-        DynamoDbTable<StoryBean> storyTable = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
+        table = enhancedClient.table("story", TableSchema.fromBean(StoryBean.class));
         Key key = Key.builder().partitionValue(targetUserAlias).build();
         QueryEnhancedRequest.Builder requestBuilder = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.keyEqualTo(key))
@@ -104,8 +144,7 @@ public class StatusDAO extends BaseDAO<FeedBean> implements IStatusDAO {
         }
         QueryEnhancedRequest request = requestBuilder.build();
         DataPage<StoryBean> result = new DataPage<StoryBean>();
-
-        SdkIterable<Page<StoryBean>> sdkIterable = storyTable.query(request);
+        SdkIterable<Page<StoryBean>> sdkIterable = table.query(request);
         PageIterable<StoryBean> pages = PageIterable.create(sdkIterable);
         pages.stream()
                 .limit(1)
@@ -114,6 +153,5 @@ public class StatusDAO extends BaseDAO<FeedBean> implements IStatusDAO {
                     page.items().forEach(visit -> result.getValues().add(visit));
                 });
         return result;
-
     }
 }

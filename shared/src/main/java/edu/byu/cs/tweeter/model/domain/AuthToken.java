@@ -10,6 +10,7 @@ public class AuthToken implements Serializable {
      * Value of the auth token.
      */
     public String token;
+
     /**
      * String representation of date/time at which the auth token was created.
      */
@@ -37,5 +38,8 @@ public class AuthToken implements Serializable {
 
     public String getDatetime() {
         return datetime;
+    }
+    public void setDatetime(String datetime) {
+        this.datetime = datetime;
     }
 }

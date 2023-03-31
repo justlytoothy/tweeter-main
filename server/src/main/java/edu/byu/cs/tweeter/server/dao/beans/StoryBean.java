@@ -10,12 +10,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @DynamoDbBean
 public class StoryBean {
     private String alias;
-
     private Long timestamp;
     public String post;
     public List<String> urls;
     public List<String> mentions;
-    public User user;
+    public String user;
 
     @DynamoDbPartitionKey
     public String getAlias() {
@@ -68,11 +67,11 @@ public class StoryBean {
         }
         return stringBuilder.toString();
     }
-    public User getUser() {
+    public String getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(String user) {
         this.user = user;
     }
     @Override
@@ -81,7 +80,7 @@ public class StoryBean {
                 "alias='" + alias + '\'' +
                 "timestamp='" + timestamp.toString() + '\'' +
                 "urls='" + arrayToString(urls) + '\'' +
-                "user='" + user.getName() + '\'' +
+                "user='" + user + '\'' +
                 ", mentions='" + arrayToString(mentions) +
                 '}';
     }

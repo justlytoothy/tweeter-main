@@ -1,24 +1,21 @@
 package edu.byu.cs.tweeter.server.dao.beans;
+
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.server.dao.FollowDAO;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 
 @DynamoDbBean
 public class FeedBean {
     private String alias;
-
     private Long timestamp;
     public String post;
     public List<String> urls;
     public List<String> mentions;
-    public User user;
+    public String user;
 
     @DynamoDbPartitionKey
     public String getAlias() {
@@ -71,11 +68,11 @@ public class FeedBean {
         }
         return stringBuilder.toString();
     }
-    public User getUser() {
+    public String getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(String user) {
         this.user = user;
     }
     @Override
@@ -84,7 +81,7 @@ public class FeedBean {
                 "alias='" + alias + '\'' +
                 "timestamp='" + timestamp.toString() + '\'' +
                 "urls='" + arrayToString(urls) + '\'' +
-                "user='" + user.getName() + '\'' +
+                "user='" + user + '\'' +
                 ", mentions='" + arrayToString(mentions) +
                 '}';
     }
