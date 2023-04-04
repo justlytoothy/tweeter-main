@@ -53,7 +53,7 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
                 String lastUser = null;
                 //TODO call from service, all of the DAOs shouldnt depend on each other
                 while (morePages) {
-                    DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),100,lastUser);
+                    DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),25,lastUser);
                     for (FollowBean f : page.getValues()) {
                         feedBean.setAlias(f.getFollower_handle());
                         feedTable.putItem(feedBean);
