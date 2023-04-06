@@ -1,6 +1,10 @@
 package edu.byu.cs.tweeter.server.dao;
 
 
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -48,19 +52,14 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
                 feedBean.setUrls(request.getStatus().getUrls());
                 feedBean.setTimestamp(request.getStatus().getTimestamp());
                 feedBean.setUser(new Gson().toJson(request.getStatus().getUser()));
-                DynamoDbTable<StoryBean> feedTable = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
-                boolean morePages = true;
-                String lastUser = null;
-                //TODO call from service, all of the DAOs shouldnt depend on each other
-                while (morePages) {
-                    DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(request.getStatus().getUser().getAlias(),25,lastUser);
-                    for (FollowBean f : page.getValues()) {
-                        feedBean.setAlias(f.getFollower_handle());
-                        feedTable.putItem(feedBean);
-                        lastUser = f.getFollower_handle();
-                    }
-                    morePages = page.isHasMorePages();
-                }
+                String messageBody = new Gson().toJson(feedBean);
+                String queueUrl = "https://sqs.us-east-1.amazonaws.com/978529209683/TweeterPostStatus";
+
+                SendMessageRequest send_msg_request = new SendMessageRequest().withQueueUrl(queueUrl).withMessageBody(messageBody);
+                AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+                SendMessageResult send_msg_result = sqs.sendMessage(send_msg_request);
+                String msgId = send_msg_result.getMessageId();
+                System.out.println("Message ID: " + msgId);
                 return new SendStatusResponse();
             }
             else {
@@ -115,6 +114,8 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
         }
     }
 
+
+
     public DataPage<StoryBean> getPageOfFeed(String targetUserAlias, int pageSize, Status lastStatus) {
         table = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
         Key key = Key.builder().partitionValue(targetUserAlias).build();
@@ -164,5 +165,11 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
                     page.items().forEach(visit -> result.getValues().add(visit));
                 });
         return result;
+    }
+    @Override
+    public void postFeed(String entry) {
+        StoryBean bean = new Gson().fromJson(entry,StoryBean.class);
+        table = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
+        table.putItem(bean);
     }
 }
