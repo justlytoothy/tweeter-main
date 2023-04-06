@@ -11,8 +11,10 @@ import edu.byu.cs.tweeter.model.net.response.CountResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.UserListResponse;
+import edu.byu.cs.tweeter.server.dao.DataPage;
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
 import edu.byu.cs.tweeter.server.dao.IFollowDAO;
+import edu.byu.cs.tweeter.server.dao.beans.FollowBean;
 
 /**
  * Contains the business logic for getting the users a user is following.
@@ -114,4 +116,7 @@ public class FollowService {
     }
 
 
+    public DataPage<FollowBean> getPageOfFollowers(String alias, int i, String lastUser) {
+        return getFollowDAO().getPageOfFollowers(alias, i, lastUser);
+    }
 }

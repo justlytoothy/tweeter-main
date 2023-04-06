@@ -1,4 +1,6 @@
 package edu.byu.cs.tweeter.server.dao.beans;
+import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.server.service.Security;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
@@ -10,6 +12,15 @@ public class UserBean {
     private String first_name;
     private String last_name;
     private String image;
+
+    public UserBean(User u) {
+        username = u.getAlias();
+        password = Security.encryptPassword(u.getAlias());
+        first_name = u.getFirstName();
+        last_name = u.getLastName();
+        image = u.getImageUrl();
+    }
+    public UserBean(){}
 
     @DynamoDbPartitionKey
     public String getUsername() {

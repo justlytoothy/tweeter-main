@@ -20,15 +20,20 @@ import edu.byu.cs.tweeter.model.net.response.SendStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.StatusesResponse;
 import edu.byu.cs.tweeter.server.dao.beans.FollowBean;
 import edu.byu.cs.tweeter.server.dao.beans.StoryBean;
+import edu.byu.cs.tweeter.server.dao.beans.UserBean;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
 
@@ -167,9 +172,47 @@ public class StatusDAO extends BaseDAO<StoryBean> implements IStatusDAO {
         return result;
     }
     @Override
-    public void postFeed(String entry) {
-        StoryBean bean = new Gson().fromJson(entry,StoryBean.class);
+    public void postFeed(List<String> users,Status s) {
+        List<StoryBean> batchToWrite = new ArrayList<>();
+        for (String u : users) {
+            StoryBean dto = new StoryBean(s,u);
+            batchToWrite.add(dto);
+
+            if (batchToWrite.size() == 25) {
+                // package this batch up and send to DynamoDB.
+                writeChunkOfStoryBeans(batchToWrite);
+                batchToWrite = new ArrayList<>();
+            }
+        }
+        // write any remaining
+        if (batchToWrite.size() > 0) {
+            // package this batch up and send to DynamoDB.
+            writeChunkOfStoryBeans(batchToWrite);
+        }
+    }
+    private void writeChunkOfStoryBeans(List<StoryBean> storyBeans) {
+        if(storyBeans.size() > 25)
+            throw new RuntimeException("Too many statuses to write");
+
         table = enhancedClient.table("feed", TableSchema.fromBean(StoryBean.class));
-        table.putItem(bean);
+        WriteBatch.Builder<StoryBean> writeBuilder = WriteBatch.builder(StoryBean.class).mappedTableResource(table);
+        for (StoryBean item : storyBeans) {
+            writeBuilder.addPutItem(builder -> builder.item(item));
+        }
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest.builder()
+                .writeBatches(writeBuilder.build()).build();
+
+        try {
+            BatchWriteResult result = enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
+
+            // just hammer dynamodb again with anything that didn't get written this time
+            if (result.unprocessedPutItemsForTable(table).size() > 0) {
+                writeChunkOfStoryBeans(result.unprocessedPutItemsForTable(table));
+            }
+
+        } catch (DynamoDbException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
     }
 }

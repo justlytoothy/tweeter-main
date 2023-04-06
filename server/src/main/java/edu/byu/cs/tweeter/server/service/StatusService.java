@@ -2,6 +2,9 @@ package edu.byu.cs.tweeter.server.service;
 
 import com.google.gson.Gson;
 
+import java.util.List;
+
+import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.net.request.SendStatusRequest;
 import edu.byu.cs.tweeter.model.net.request.StatusesRequest;
 import edu.byu.cs.tweeter.model.net.response.SendStatusResponse;
@@ -30,8 +33,8 @@ public class StatusService {
     public StatusesResponse getFeed(StatusesRequest request) {
         return getStatusDAO().getFeed(request);
     }
-    public void postFeed(StoryBean bean) {
-        getStatusDAO().postFeed(new Gson().toJson(bean));
+    public void postFeed(List<String> users, Status status) {
+        getStatusDAO().postFeed(users,status);
     }
 
 }

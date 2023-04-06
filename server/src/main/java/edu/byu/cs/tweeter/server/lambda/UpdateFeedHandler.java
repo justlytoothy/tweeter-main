@@ -5,6 +5,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.google.gson.Gson;
 
+import edu.byu.cs.tweeter.model.domain.Status;
+import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.server.dao.StatusDAO;
@@ -34,16 +36,8 @@ public class UpdateFeedHandler implements RequestHandler<SQSEvent, Void> {
         context.getLogger().log("This is update feed \n" + msg.getRecords().get(0).getBody());
         UpdateFeedUtil updateFeedUtil = new Gson().fromJson(msg.getRecords().get(0).getBody(),UpdateFeedUtil.class);
         StatusService statusService = new StatusService(new DynamoFactory());
-        StoryBean feedBean = new StoryBean();
-        feedBean.setPost(updateFeedUtil.getPost());
-        feedBean.setMentions(updateFeedUtil.getMentions());
-        feedBean.setUrls(updateFeedUtil.getUrls());
-        feedBean.setTimestamp(updateFeedUtil.getTimestamp());
-        feedBean.setUser(new Gson().toJson(updateFeedUtil.getUser()));
-        for (String u : updateFeedUtil.getUsers()) {
-            feedBean.setAlias(u);
-            statusService.postFeed(feedBean);
-        }
+        Status status = new Status(updateFeedUtil.getPost(), new Gson().fromJson(updateFeedUtil.getUser(), User.class), updateFeedUtil.getTimestamp(), updateFeedUtil.getUrls(),updateFeedUtil.getMentions());
+        statusService.postFeed(updateFeedUtil.getUsers(),status);
         return null;
     }
 }

@@ -43,13 +43,16 @@ public class PostUpdateFeedMessagesHandler implements RequestHandler<SQSEvent, V
         context.getLogger().log(msg.getRecords().get(0).getBody());
         StoryBean request = (StoryBean)gson.fromJson(msg.getRecords().get(0).getBody(), StoryBean.class);
         context.getLogger().log("This is post feed \n" + request.toString());
-
+        //TODO dont access DAO directly
         while (morePages) {
-            DataPage<FollowBean> page = new FollowDAO().getPageOfFollowers(gson.fromJson(request.getUser(), User.class).getAlias(),25,lastUser);
+            DataPage<FollowBean> page = followService.getPageOfFollowers(gson.fromJson(request.getUser(), User.class).getAlias(),50,lastUser);
             List<String> users = new ArrayList<String>();
-            for (FollowBean f : page.getValues()) {
-                users.add(f.getFollower_handle());
-                lastUser = f.getFollower_handle();
+            List<FollowBean> list = page.getValues();
+            for (int i = 0; i < list.size();i++) {
+                users.add(list.get(i).getFollower_handle());
+                if (i == list.size()-1) {
+                    lastUser = list.get(i).getFollower_handle();
+                }
             }
             UpdateFeedUtil updateFeedUtil = new UpdateFeedUtil(users,request.getAlias(),request.getTimestamp(), request.getPost(), request.getUrls(),request.getMentions(), request.getUser());
             String messageBody = gson.toJson(updateFeedUtil);
@@ -57,8 +60,7 @@ public class PostUpdateFeedMessagesHandler implements RequestHandler<SQSEvent, V
 
             SendMessageRequest send_msg_request = new SendMessageRequest().withQueueUrl(queueUrl).withMessageBody(messageBody);
             AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
-            SendMessageResult send_msg_result = sqs.sendMessage(send_msg_request);
-            String msgId = send_msg_result.getMessageId();
+            sqs.sendMessage(send_msg_request);
             morePages = page.isHasMorePages();
         }
         return null;

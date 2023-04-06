@@ -11,6 +11,7 @@ import edu.byu.cs.tweeter.model.net.response.CountResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.UserListResponse;
+import edu.byu.cs.tweeter.server.dao.beans.FollowBean;
 
 /**
  * A DAO for accessing 'following' data from the database.
@@ -24,5 +25,5 @@ public interface IFollowDAO {
     FollowResponse follow(FollowRequest request);
     FollowResponse unfollow(FollowRequest request);
     IsFollowingResponse isFollowing(IsFollowingRequest request);
-
+    DataPage<FollowBean> getPageOfFollowers(String targetUserAlias, int pageSize, String lastUserAlias);
 }

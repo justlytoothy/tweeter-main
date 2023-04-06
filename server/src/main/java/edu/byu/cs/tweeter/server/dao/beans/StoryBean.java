@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.server.dao.beans;
 import java.util.List;
 
+import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -15,6 +16,16 @@ public class StoryBean {
     public List<String> urls;
     public List<String> mentions;
     public String user;
+    public StoryBean() {}
+
+    public StoryBean(Status s, String alias) {
+        this.alias = alias;
+        this.timestamp = s.getTimestamp();
+        this.post = s.getPost();
+        this.urls = s.getUrls();
+        this.mentions = s.getUrls();
+        this.user = s.getUser().getAlias();
+    }
 
     @DynamoDbPartitionKey
     public String getAlias() {
