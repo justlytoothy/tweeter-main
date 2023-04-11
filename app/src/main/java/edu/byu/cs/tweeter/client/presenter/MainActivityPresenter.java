@@ -45,7 +45,7 @@ public class MainActivityPresenter {
         }
         return userService;
     }
-    protected StatusService getStatusService() {
+    public StatusService getStatusService() {
         if (statusService == null) {
             statusService = new StatusService();
         }
@@ -76,8 +76,10 @@ public class MainActivityPresenter {
     public void postStatus(AuthToken currUserAuthToken, String post, User currUser) {
         view.displayMessage("Posting Status...");
         Status newStatus = new Status(post,currUser,System.currentTimeMillis(),parseURLs(post),parseMentions(post));
-        getStatusService().postStatus(currUserAuthToken,newStatus, new PostStatusObserver());
-
+        getStatusService().postStatus(currUserAuthToken,newStatus, getPostStatusObserver());
+    }
+    public SimpleNotificationObserver getPostStatusObserver() {
+        return new PostStatusObserver();
     }
 
     public class LogoutObserver implements SimpleNotificationObserver {

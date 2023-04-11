@@ -1,16 +1,25 @@
 package edu.byu.cs.tweeter.client;
 
+import static net.bytebuddy.agent.Installer.getInstrumentation;
+
+import static java.util.UUID.randomUUID;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.backgroundTask.observer.AuthObserver;
 import edu.byu.cs.tweeter.client.model.backgroundTask.observer.PagedNotificationObserver;
+import edu.byu.cs.tweeter.client.model.backgroundTask.observer.SimpleNotificationObserver;
+import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.client.presenter.MainActivityPresenter;
+import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -21,10 +30,26 @@ public class IntegrationTest {
     private LoginObserver loginObserver;
     private AuthToken authToken;
     private User user;
+    private MainActivityPresenter mainActivityPresenter;
+    private MainActivityPresenter.View mockView;
+    private PostStatusObserver mockPostStatusObserver;
+    private String currentPost;
+    private StatusService statusService;
+    private StatusServiceObserver serviceObserver;
+
     @BeforeEach
     void setUp() {
         userService = Mockito.spy(new UserService());
         loginObserver = new LoginObserver();
+//        mainView = Mockito.spy(new MainActivity());
+        mockView = Mockito.mock(MainActivityPresenter.View.class);
+        mainActivityPresenter = Mockito.spy(new MainActivityPresenter(mockView));
+        mockPostStatusObserver = new PostStatusObserver();
+        currentPost = randomUUID().toString();
+        statusService = Mockito.spy(new StatusService());
+        serviceObserver = new StatusServiceObserver();
+        Mockito.when(mainActivityPresenter.getPostStatusObserver()).thenReturn(mockPostStatusObserver);
+//        Mockito.when(mainActivityPresenter.getStatusService()).thenReturn()
         resetCountDownLatch();
     }
     private void resetCountDownLatch() {
@@ -44,11 +69,22 @@ public class IntegrationTest {
         authToken = loginObserver.getAuthToken();
         user = loginObserver.getUser();
         System.out.println(loginObserver.getAuthToken().toString());
+        mainActivityPresenter.postStatus(authToken,currentPost,user);
+        awaitCountDownLatch();
+        Mockito.verify(mockView).statusPosted();
+        statusService.loadMoreItems(user,25,null,serviceObserver);
+        awaitCountDownLatch();
+        System.out.println(serviceObserver.getStatuses().get(0).toString());
+        Status receivedStatus = serviceObserver.getStatuses().get(0);
+        Assertions.assertEquals(currentPost,receivedStatus.getPost());
+        Assertions.assertEquals(user,receivedStatus.getUser());
+        Assertions.assertEquals(new ArrayList<String>(),receivedStatus.getMentions());
+        Assertions.assertEquals(new ArrayList<String>(),receivedStatus.getUrls());
+
+
+
+
     }
-
-
-
-
 
     private class StatusServiceObserver implements PagedNotificationObserver<Status> {
         private boolean success;
@@ -111,6 +147,12 @@ public class IntegrationTest {
         }
     }
 
+
+
+
+
+
+
     private class LoginObserver implements AuthObserver {
         private boolean success;
         private String message;
@@ -167,6 +209,26 @@ public class IntegrationTest {
 
         public AuthToken getAuthToken() {
             return authToken;
+        }
+    }
+    public class PostStatusObserver implements SimpleNotificationObserver {
+
+        @Override
+        public void handleFailure(String message) {
+            mockView.displayMessage("Failed to post the status: " + message);
+            countDownLatch.countDown();
+        }
+
+        @Override
+        public void handleException(Exception ex) {
+            mockView.displayMessage("Failed to post the status because of exception: " + ex.getMessage());
+            countDownLatch.countDown();
+        }
+
+        @Override
+        public void handleSuccess() {
+            mockView.statusPosted();
+            countDownLatch.countDown();
         }
     }
 }
