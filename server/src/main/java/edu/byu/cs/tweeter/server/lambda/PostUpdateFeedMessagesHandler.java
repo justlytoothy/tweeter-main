@@ -42,8 +42,6 @@ public class PostUpdateFeedMessagesHandler implements RequestHandler<SQSEvent, V
         String lastUser = null;
         context.getLogger().log(msg.getRecords().get(0).getBody());
         StoryBean request = (StoryBean)gson.fromJson(msg.getRecords().get(0).getBody(), StoryBean.class);
-        context.getLogger().log("This is post feed \n" + request.toString());
-        //TODO dont access DAO directly
         while (morePages) {
             DataPage<FollowBean> page = followService.getPageOfFollowers(gson.fromJson(request.getUser(), User.class).getAlias(),50,lastUser);
             List<String> users = new ArrayList<String>();
