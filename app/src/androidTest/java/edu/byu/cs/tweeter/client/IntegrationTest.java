@@ -68,13 +68,11 @@ public class IntegrationTest {
         Assertions.assertTrue(loginObserver.isSuccess());
         authToken = loginObserver.getAuthToken();
         user = loginObserver.getUser();
-        System.out.println(loginObserver.getAuthToken().toString());
         mainActivityPresenter.postStatus(authToken,currentPost,user);
         awaitCountDownLatch();
         Mockito.verify(mockView).statusPosted();
         statusService.loadMoreItems(user,25,null,serviceObserver);
         awaitCountDownLatch();
-        System.out.println(serviceObserver.getStatuses().get(0).toString());
         Status receivedStatus = serviceObserver.getStatuses().get(0);
         Assertions.assertEquals(currentPost,receivedStatus.getPost());
         Assertions.assertEquals(user,receivedStatus.getUser());
